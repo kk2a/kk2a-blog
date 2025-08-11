@@ -1,0 +1,98 @@
+---
+title: "Next.jsでブログサイトを構築する方法"
+date: "2025-01-10"
+lastUpdated: "2025-01-11"
+excerpt: "Next.js App RouterとMDXを使用してモダンなブログサイトを構築する手順を詳しく解説します。"
+categories: ["Next.js", "React"]
+tags: ["Next.js", "React", "MDX", "TypeScript", "ブログ構築"]
+---
+
+# Next.jsでブログサイトを構築する方法
+
+このブログサイト自体も、Next.js App RouterとMDXを使用して構築されています。この記事では、同様のブログサイトを構築する手順を詳しく解説します。
+
+## 使用する技術スタック
+
+- **Next.js 15** (App Router)
+- **React 19**
+- **TypeScript**
+- **Tailwind CSS**
+- **MDX**
+- **Vercel** (デプロイ)
+
+## プロジェクトのセットアップ
+
+まず、Next.jsプロジェクトを作成します：
+
+```bash
+npx create-next-app@latest my-blog --typescript --tailwind --eslint --app
+cd my-blog
+```
+
+## MDXサポートの追加
+
+MDXを使用するために必要なパッケージをインストールします：
+
+```bash
+npm install @next/mdx @mdx-js/loader @mdx-js/react @types/mdx
+npm install gray-matter reading-time
+```
+
+## Next.js設定の更新
+
+`next.config.ts`を更新してMDXサポートを有効にします：
+
+```typescript
+import type { NextConfig } from "next";
+import createMDX from '@next/mdx';
+
+const nextConfig: NextConfig = {
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+};
+
+const withMDX = createMDX({
+  // Add markdown plugins here, as desired
+});
+
+export default withMDX(nextConfig);
+```
+
+## ディレクトリ構造
+
+ブログの基本的なディレクトリ構造は以下のようになります：
+
+```
+src/
+├── app/
+│   ├── blog/
+│   │   ├── [slug]/
+│   │   └── page.tsx
+│   ├── categories/
+│   │   └── [category]/
+│   └── tags/
+│       └── [tag]/
+├── components/
+│   ├── Header.tsx
+│   ├── Footer.tsx
+│   └── BlogCard.tsx
+└── lib/
+    └── blog.ts
+content/
+└── blog/
+    └── sample-post.mdx
+```
+
+## 記事管理の実装
+
+記事を管理するためのユーティリティ関数を実装します。これにより、MDXファイルから記事データを読み込み、一覧表示や詳細表示が可能になります。
+
+## まとめ
+
+Next.js App RouterとMDXを組み合わせることで、高性能でカスタマイズ性の高いブログサイトを構築できます。この構成により：
+
+- **優れたパフォーマンス**: Next.jsの最適化機能を活用
+- **開発者体験**: TypeScriptによる型安全性
+- **柔軟なコンテンツ**: MDXでリッチなコンテンツを作成
+- **簡単なデプロイ**: Vercelでワンクリックデプロイ
+
+今後の記事では、より詳細な実装方法や最適化テクニックについて解説していく予定です。

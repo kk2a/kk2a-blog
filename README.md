@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 死人に口なし
 
-## Getting Started
+モダンな Web 技術の学習と共有を目的としたブログサイトです。Next.js App Router と MDX を使用して構築されています。
 
-First, run the development server:
+## 特徴
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Modern Stack**: Next.js 15 + React 19 + TypeScript
+- **MDX Support**: Markdown 記法で React コンポーネントを使用可能
+- **レスポンシブデザイン**: Tailwind CSS によるモバイルファーストデザイン
+- **静的サイト生成**: 高速なページ表示
+- **カテゴリー・タグ機能**: 記事の分類と検索
+- **SEO 最適化**: メタデータと OpenGraph 対応
+
+## 技術スタック
+
+- **フレームワーク**: [Next.js 15](https://nextjs.org/) (App Router)
+- **ライブラリ**: [React 19](https://reactjs.org/)
+- **言語**: [TypeScript](https://www.typescriptlang.org/)
+- **スタイリング**: [Tailwind CSS](https://tailwindcss.com/)
+- **記事形式**: [MDX](https://mdxjs.com/)
+- **ホスティング**: [Vercel](https://vercel.com/)
+
+## ディレクトリ構造
+
+```
+├── src/
+│   ├── app/                  # Next.js App Router
+│   │   ├── blog/            # ブログ記事関連ページ
+│   │   ├── categories/      # カテゴリページ
+│   │   ├── tags/            # タグページ
+│   │   ├── about/           # About ページ
+│   │   └── privacy-policy/  # プライバシーポリシー
+│   ├── components/          # Reactコンポーネント
+│   │   ├── Header.tsx       # ヘッダー
+│   │   ├── Footer.tsx       # フッター
+│   │   └── BlogCard.tsx     # 記事カード
+│   └── lib/                 # ユーティリティ関数
+│       └── blog.ts          # 記事管理関数
+├── content/
+│   └── blog/                # MDX記事ファイル
+└── public/                  # 静的ファイル
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## サイト構造
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `/` - ホームページ（最新記事の表示）
+- `/blog` - 記事一覧ページ
+- `/blog/[slug]` - 記事詳細ページ
+- `/categories/[category]` - カテゴリー別記事一覧
+- `/tags/[tag]` - タグ別記事一覧
+- `/about` - 運営者情報
+- `/privacy-policy` - プライバシーポリシー

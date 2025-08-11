@@ -1,26 +1,157 @@
 @import "tailwindcss";
 
+/* ライトテーマ（デフォルト） */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+  --accent: #f3f4f6;
+  --accent-foreground: #111827;
+  --border: #e5e7eb;
+  --alert-background: #f8fafc;
+  --alert-text: #334155;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ダークテーマ */
+.dark {
+  --background: #1a1a1e;
+  --foreground: #f8fafc;
+  --card: #1a1a1e;
+  --card-foreground: #f8fafc;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #475569;
+  --accent-foreground: #f8fafc;
+  --border: #475569;
+  --alert-background: #1e293b;
+  --alert-text: #e2e8f0;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* スムーズなテーマ切り替えアニメーション */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* カスタムユーティリティクラス */
+@layer utilities {
+  .bg-theme-background {
+    background-color: var(--background);
+  }
+
+  .bg-theme-card {
+    background-color: var(--card);
+  }
+
+  .bg-theme-muted {
+    background-color: var(--muted);
+  }
+
+  .bg-theme-accent {
+    background-color: var(--accent);
+  }
+
+  .text-theme-foreground {
+    color: var(--foreground);
+  }
+
+  .text-theme-card-foreground {
+    color: var(--card-foreground);
+  }
+
+  .text-theme-muted-foreground {
+    color: var(--muted-foreground);
+  }
+
+  .text-theme-accent-foreground {
+    color: var(--accent-foreground);
+  }
+
+  .border-theme-border {
+    border-color: var(--border);
+  }
+
+  .hover\:text-theme-foreground:hover {
+    color: var(--foreground);
+  }
+
+  .hover\:bg-theme-accent:hover {
+    background-color: var(--accent);
+  }
+
+  .bg-alert {
+    background-color: var(--alert-background);
+  }
+
+  .text-alert {
+    color: var(--alert-text);
+  }
+}
+
+/* MDXリストのネスト対応 */
+.prose ul ul,
+.prose ol ol,
+.prose ol ul,
+.prose ul ol {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ul ul {
+  list-style-type: circle;
+}
+
+.prose ul ul ul {
+  list-style-type: square;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose ol ol {
+  list-style-type: lower-alpha;
+}
+
+.prose ol ol ol {
+  list-style-type: lower-roman;
+}
+
+/* ネストレベルに応じたインデント */
+.prose li {
+  margin-left: 0;
+}
+
+.prose li > ul,
+.prose li > ol {
+  padding-left: 0.5rem;
+}
+
+/* リンクコンテナ内の段落要素のmargin-bottomを無効化 */
+.social-links p {
+  margin-bottom: 0 !important;
+}
+
+/* カスタムスクロールバースタイル */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4b5563; /* スクロールバーの色 */
+  border-radius: 4px;
 }

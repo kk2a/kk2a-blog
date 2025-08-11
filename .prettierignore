@@ -1,0 +1,22 @@
+# MDX files should not be formatted by Prettier
+*.mdx
+
+# Content directory
+content/
+
+# Build output
+.next/
+out/
+dist/
+
+# Dependencies
+node_modules/
+
+# Cache directories
+.cache/
+
+# Environment variables
+.env*
+
+# Log files
+*.log
