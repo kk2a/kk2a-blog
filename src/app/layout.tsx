@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ThemeToggle from "@/components/ThemeToggle";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { siteConfig } from "@/config/site";
 
@@ -49,6 +50,9 @@ export default function RootLayout({
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
+          <div className="fixed bottom-6 right-6 z-50">
+            <ThemeToggle />
+          </div>
         </ThemeProvider>
       </body>
     </html>

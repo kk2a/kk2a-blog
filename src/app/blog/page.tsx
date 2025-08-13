@@ -1,5 +1,5 @@
-import { getAllPosts } from '@/lib/blog';
-import BlogCard from '@/components/BlogCard';
+import { getAllPosts } from "@/lib/blog";
+import BlogCard from "@/components/BlogCard";
 
 export default function BlogPage() {
   const posts = getAllPosts();
@@ -7,10 +7,8 @@ export default function BlogPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-          ブログ記事一覧
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300">
+        <h1 className="text-4xl font-bold text-theme-1 mb-4">ブログ記事一覧</h1>
+        <p className="text-xl text-theme-2">
           技術的な学習内容や知見を共有しています
         </p>
       </div>

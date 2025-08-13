@@ -32,8 +32,8 @@ export default async function PrivacyPolicyPage() {
           </div>
 
           {pageData.lastUpdated && (
-            <div className="mt-8 pt-4 border-t border-gray-707">
-              <p className="text-sm text-gray-400">
+            <div className="mt-8 pt-4 border-t border-theme-border">
+              <p className="text-sm text-theme-2">
                 最終更新:{" "}
                 {new Date(pageData.lastUpdated).toLocaleDateString("ja-JP")}
               </p>

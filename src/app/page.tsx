@@ -10,15 +10,15 @@ export default function Home() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* ヒーローセクション */}
       <section className="py-16 text-center">
-        <h1 className="text-5xl font-bold text-gray-900 dark:text-gray-50 mb-6">
+        <h1 className="text-5xl font-bold text-theme-1 mb-6">
           {siteConfig.name}
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+        <p className="text-xl text-theme-3 mb-8 max-w-3xl mx-auto">
           {siteConfig.description}
         </p>
         <Link
           href="/blog"
-          className="inline-block bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
         >
           記事を読む
         </Link>
@@ -27,12 +27,10 @@ export default function Home() {
       {/* 最新記事セクション */}
       <section className="py-16">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-50">
-            最新記事
-          </h2>
+          <h2 className="text-3xl font-bold text-theme-1">最新記事</h2>
           <Link
             href="/blog"
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
+            className="text-url-1 hover:text-url-2 font-medium transition-colors"
           >
             すべて見る →
           </Link>

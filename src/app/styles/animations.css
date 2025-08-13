@@ -1,0 +1,8 @@
+/* ホバー時の揺れアニメーション */
+.wiggle-on-hover {
+  transition: transform 0.3s ease-in-out;
+}
+
+.wiggle-on-hover:hover {
+  transform: rotate(15deg);
+}

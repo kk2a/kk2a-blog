@@ -17,24 +17,24 @@ const iconMap = {
 
 const colorMap = {
   info: {
-    container: "border-blue-500 bg-alert border-l-4",
+    container: "border-blue-500 bg-alert-box border-l-4",
     icon: "text-blue-400",
-    text: "text-alert [&_*]:text-alert",
+    text: "text-theme-2",
   },
   success: {
-    container: "border-green-500 bg-alert border-l-4",
+    container: "border-green-500 bg-alert-box border-l-4",
     icon: "text-green-400",
-    text: "text-alert [&_*]:text-alert",
+    text: "text-theme-2",
   },
   warning: {
-    container: "border-yellow-500 bg-alert border-l-4",
+    container: "border-yellow-500 bg-alert-box border-l-4",
     icon: "text-yellow-400",
-    text: "text-alert [&_*]:text-alert",
+    text: "text-theme-2",
   },
   error: {
-    container: "border-red-500 bg-alert border-l-4",
+    container: "border-red-500 bg-alert-box border-l-4",
     icon: "text-red-400",
-    text: "text-alert [&_*]:text-alert",
+    text: "text-theme-2",
   },
 };
 

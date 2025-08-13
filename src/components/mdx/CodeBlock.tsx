@@ -45,10 +45,10 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
         <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
           <div className="flex items-center space-x-2">
             {title && (
-              <span className="text-sm font-medium text-gray-300">{title}</span>
+              <span className="text-sm font-medium text-gray-100">{title}</span>
             )}
             {language && (
-              <span className="text-xs px-2 py-1 bg-gray-700 rounded text-gray-400">
+              <span className="text-xs px-2 py-1 bg-gray-700 rounded text-gray-100">
                 {language}
               </span>
             )}
@@ -67,7 +67,7 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
         </div>
       )}
 
-      <div className="relative">
+      <div className="relative bg-[#1f1f1f]">
         <pre className="p-4 overflow-x-auto text-sm font-mono">
           <code className="text-gray-100">{getCode()}</code>
         </pre>

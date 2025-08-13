@@ -49,28 +49,28 @@ export const mdxComponents = {
   TwitterIcon,
   SiteName,
   // HTML要素のカスタマイズ
-  h1: createHeading(1, "text-4xl font-bold text-gray-100 mb-6"),
-  h2: createHeading(2, "text-3xl font-semibold text-gray-50 mb-4 mt-8"),
-  h3: createHeading(3, "text-2xl font-semibold text-gray-50 mb-3 mt-6"),
-  h4: createHeading(4, "text-xl font-semibold text-gray-50 mb-3 mt-6"),
-  h5: createHeading(5, "text-lg font-semibold text-gray-50 mb-2 mt-4"),
-  h6: createHeading(6, "text-base font-semibold text-gray-50 mb-2 mt-4"),
+  h1: createHeading(1, "text-4xl font-bold text-theme-1 mb-6"),
+  h2: createHeading(2, "text-3xl font-semibold text-theme-1 mb-4 mt-8"),
+  h3: createHeading(3, "text-2xl font-semibold text-theme-1 mb-3 mt-6"),
+  h4: createHeading(4, "text-xl font-semibold text-theme-1 mb-3 mt-6"),
+  h5: createHeading(5, "text-lg font-semibold text-theme-1 mb-2 mt-4"),
+  h6: createHeading(6, "text-base font-semibold text-theme-1 mb-2 mt-4"),
   p: ({ children }: { children: React.ReactNode }) => (
-    <p className="text-gray-300 mb-4 leading-relaxed">{children}</p>
+    <p className="text-theme-2 mb-4 leading-relaxed">{children}</p>
   ),
   ul: ({ children }: { children: React.ReactNode }) => (
-    <ul className="text-gray-300 mb-4 list-disc ml-4 space-y-2">{children}</ul>
+    <ul className="text-theme-2 mb-4 list-disc ml-4 space-y-2">{children}</ul>
   ),
   ol: ({ children }: { children: React.ReactNode }) => (
-    <ol className="text-gray-300 mb-4 list-decimal ml-4 space-y-2">
+    <ol className="text-theme-2 mb-4 list-decimal ml-4 space-y-2">
       {children}
     </ol>
   ),
   li: ({ children }: { children: React.ReactNode }) => (
-    <li className="text-gray-300 leading-relaxed">{children}</li>
+    <li className="text-theme-2 leading-relaxed">{children}</li>
   ),
   blockquote: ({ children }: { children: React.ReactNode }) => (
-    <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-400 my-4">
+    <blockquote className="border-l-4 border-blue-500 pl-4 italic text-theme-3 my-4">
       {children}
     </blockquote>
   ),
@@ -80,20 +80,35 @@ export const mdxComponents = {
     </code>
   ),
   pre: ({ children }: { children: React.ReactNode }) => (
-    <pre className="border border-gray-700 rounded-lg p-4 overflow-x-auto my-4">
+    <pre className="border rounded-lg p-4 overflow-x-auto my-4">
       <code className="text-gray-100 text-sm font-mono">{children}</code>
     </pre>
   ),
   a: ({ href, children }: { href: string; children: React.ReactNode }) => (
     <a
       href={href}
-      className="text-blue-400 hover:text-blue-300 underline transition-colors"
+      className="text-url-1 hover:text-url-2 underline transition-colors"
       target={href?.startsWith("http") ? "_blank" : undefined}
       rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
     >
       {children}
     </a>
   ),
+  // テーブル要素
+  table: ({ children }: { children: React.ReactNode }) => (
+    <div className="table-container overflow-x-auto my-6">
+      <table className="prose w-full border-collapse">{children}</table>
+    </div>
+  ),
+  thead: ({ children }: { children: React.ReactNode }) => (
+    <thead>{children}</thead>
+  ),
+  tbody: ({ children }: { children: React.ReactNode }) => (
+    <tbody>{children}</tbody>
+  ),
+  tr: ({ children }: { children: React.ReactNode }) => <tr>{children}</tr>,
+  th: ({ children }: { children: React.ReactNode }) => <th>{children}</th>,
+  td: ({ children }: { children: React.ReactNode }) => <td>{children}</td>,
   // カスタムdivクラス（MDXで使用可能）
   div: ({
     className,

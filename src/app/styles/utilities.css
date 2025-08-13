@@ -1,0 +1,125 @@
+/* カスタムユーティリティクラス */
+@layer utilities {
+  .text-theme-1 {
+    color: var(--text-1);
+  }
+
+  .text-theme-2 {
+    color: var(--text-2);
+  }
+
+  .text-theme-3 {
+    color: var(--text-3);
+  }
+
+  .hover\:text-theme-1:hover {
+    color: var(--text-1);
+  }
+  .hover\:text-theme-2:hover {
+    color: var(--text-2);
+  }
+  .hover\:text-theme-3:hover {
+    color: var(--text-3);
+  }
+
+  .text-url-1 {
+    color: var(--text-url-1);
+  }
+  .text-url-2 {
+    color: var(--text-url-2);
+  }
+  .hover\:text-url-1:hover {
+    color: var(--text-url-1);
+  }
+  .hover\:text-url-2:hover {
+    color: var(--text-url-2);
+  }
+
+  .bg-theme-background {
+    background-color: var(--background);
+  }
+
+  .border-theme-border {
+    border-color: var(--border);
+  }
+
+  /* テーブル用ユーティリティクラス */
+  .bg-table-header {
+    background-color: var(--table-header-bg);
+  }
+
+  .text-table-header {
+    color: var(--table-header-text);
+  }
+
+  .bg-table-cell {
+    background-color: var(--table-cell-bg);
+  }
+
+  .text-table-cell {
+    color: var(--table-cell-text);
+  }
+
+  .border-table {
+    border-color: var(--table-border);
+  }
+
+  .text-table-accent {
+    color: var(--table-accent);
+  }
+
+  .bg-alert-box {
+    background-color: var(--alert-box-bg);
+  }
+
+  .text-table-of-contents-1 {
+    color: var(--table-of-contents-text-1);
+  }
+  .text-table-of-contents-2 {
+    color: var(--table-of-contents-text-2);
+  }
+  .hover\:text-table-of-contents-1:hover {
+    color: var(--table-of-contents-text-1);
+  }
+  .hover\:text-table-of-contents-2:hover {
+    color: var(--table-of-contents-text-2);
+  }
+  .bg-table-of-contents-1 {
+    background-color: var(--table-of-contents-bg-1);
+  }
+  .hover\:bg-table-of-contents-1:hover {
+    background-color: var(--table-of-contents-bg-1);
+  }
+
+  .text-category-1 {
+    color: var(--category-text-1);
+  }
+  .bg-category-1 {
+    background-color: var(--category-bg-1);
+  }
+  .bg-category-2 {
+    background-color: var(--category-bg-2);
+  }
+  .hover\:bg-category-1:hover {
+    background-color: var(--category-bg-1);
+  }
+  .hover\:bg-category-2:hover {
+    background-color: var(--category-bg-2);
+  }
+
+  .text-tag-1 {
+    color: var(--tag-text-1);
+  }
+  .bg-tag-1 {
+    background-color: var(--tag-bg-1);
+  }
+  .bg-tag-2 {
+    background-color: var(--tag-bg-2);
+  }
+  .hover\:bg-tag-1:hover {
+    background-color: var(--tag-bg-1);
+  }
+  .hover\:bg-tag-2:hover {
+    background-color: var(--tag-bg-2);
+  }
+}

@@ -1,7 +1,7 @@
-import { getAllCategories, getPostsByCategory } from '@/lib/blog';
-import BlogCard from '@/components/BlogCard';
-import Link from 'next/link';
-import { siteConfig } from '@/config/site';
+import { getAllCategories, getPostsByCategory } from "@/lib/blog";
+import BlogCard from "@/components/BlogCard";
+import Link from "next/link";
+import { siteConfig } from "@/config/site";
 
 interface Props {
   params: Promise<{ category: string }>;
@@ -17,7 +17,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props) {
   const { category } = await params;
   const decodedCategory = decodeURIComponent(category);
-  
+
   return {
     title: `${decodedCategory}の記事 | ${siteConfig.name}`,
     description: `${decodedCategory}カテゴリの記事一覧`,
@@ -33,28 +33,28 @@ export default async function CategoryPage({ params }: Props) {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       {/* パンくずリスト */}
       <nav className="mb-8">
-        <ol className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+        <ol className="flex items-center space-x-2 text-sm text-theme-3">
           <li>
-            <Link href="/" className="hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+            <Link href="/" className="hover:text-theme-1 transition-colors">
               ホーム
             </Link>
           </li>
           <li>/</li>
           <li>
-            <Link href="/blog" className="hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+            <Link href="/blog" className="hover:text-theme-1 transition-colors">
               ブログ
             </Link>
           </li>
           <li>/</li>
-          <li className="text-gray-900 dark:text-gray-100">カテゴリー: {decodedCategory}</li>
+          <li className="text-theme-1">カテゴリー: {decodedCategory}</li>
         </ol>
       </nav>
 
       <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        <h1 className="text-4xl font-bold text-theme-1 mb-4">
           {decodedCategory}の記事
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300">
+        <p className="text-xl text-theme-2">
           {posts.length}件の記事が見つかりました
         </p>
       </div>
@@ -67,12 +67,12 @@ export default async function CategoryPage({ params }: Props) {
         </div>
       ) : (
         <div className="text-center py-16">
-          <p className="text-gray-600 dark:text-gray-300 text-lg">
+          <p className="text-theme-2 text-lg">
             このカテゴリーにはまだ記事がありません。
           </p>
           <Link
             href="/blog"
-            className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+            className="mt-4 inline-block text-url-1 hover:text-url-2 transition-colors"
           >
             すべての記事を見る
           </Link>

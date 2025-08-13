@@ -4,19 +4,17 @@ import { GithubIcon, TwitterIcon } from "@/components/icons/SocialIcons";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-100 bg-theme-card mt-16 border-t border-gray-200 border-theme-border">
+    <footer className="bg-theme-background mt-16 border-t border-theme-border text-theme-2">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 text-theme-card-foreground mb-4">
-              リンク
-            </h3>
+            <h3 className="text-lg font-semibold text-theme-1 mb-4">リンク</h3>
             <ul className="space-y-2">
               {siteConfig.footer.links.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-gray-600 text-theme-muted-foreground hover:text-gray-900 hover:text-theme-foreground transition-colors"
+                    className="text-theme-3 hover:text-theme-1 transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -25,10 +23,10 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 text-theme-card-foreground mb-4">
+            <h3 className="text-lg font-semibold text-theme-1 mb-4">
               お問い合わせ
             </h3>
-            <p className="text-gray-600 text-theme-muted-foreground">
+            <p className="text-theme-3">
               ご質問やご意見がございましたら、お気軽にお声がけください。
             </p>
           </div>
@@ -55,8 +53,8 @@ export default function Footer() {
             </a>
           </div>
         </div>
-        <div className="border-t border-gray-200 border-theme-border mt-1 pt-8">
-          <p className="text-center text-gray-600 text-theme-muted-foreground">
+        <div className="border-t border-theme-border mt-1 pt-8">
+          <p className="text-center text-theme-3">
             {siteConfig.footer.copyright}
           </p>
         </div>

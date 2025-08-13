@@ -1,0 +1,70 @@
+/* リンクコンテナ内の段落要素のmargin-bottomを無効化 */
+.social-links p {
+  margin-bottom: 0 !important;
+}
+
+/* カスタムスクロールバースタイル */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--bg-scroll-bar); /* スクロールバーの色 */
+  border-radius: 4px;
+}
+
+/* MDX Table Styles */
+.prose table {
+  width: 100%;
+  margin: 1.5rem 0;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.prose table th,
+.prose table td {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  border: 1px solid var(--table-border);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.prose table th {
+  background-color: var(--table-header-bg);
+  color: var(--table-header-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.025em;
+}
+
+.prose table td {
+  background-color: var(--table-cell-bg);
+  color: var(--table-cell-text);
+  font-size: 0.875rem;
+}
+
+.prose table tbody tr:hover td {
+  background-color: var(--table-hover-bg);
+  color: var(--table-hover-text);
+}
+
+/* スマホ対応: 横スクロール */
+.prose .table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+  .prose table {
+    font-size: 0.875rem; /* 14px */
+  }
+
+  .prose table th,
+  .prose table td {
+    padding: 0.5rem 0.75rem;
+  }
+}

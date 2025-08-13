@@ -1,0 +1,71 @@
+/* ライトテーマ（デフォルト） */
+:root {
+  --background: #fafafa;
+  --border: #ccc;
+  --text-1: #111; /* 見出しとか */
+  --text-2: #222; /* 本文 */
+  --text-3: #555; /* 補助テキスト */
+  --text-url-1: #155dfc; /* リンク色(通常) */
+  --text-url-2: #1447e6; /* リンク色(ホバー) */
+  --bg-scroll-bar: #d0d0d0; /* スクロールバーの背景色 */
+
+  /* テーブル用CSS変数 */
+  --table-header-bg: #dbeafe;
+  --table-header-text: #1e40af;
+  --table-cell-bg: #fefefe;
+  --table-cell-text: #334155;
+  --table-border: #e2e8f0;
+  --table-hover-bg: #eff6ff;
+  --table-hover-text: #1e293b;
+  --table-accent: #d97706;
+
+  --alert-box-bg: #f3f4f6;
+
+  --table-of-contents-text-1: #155dfc;
+  --table-of-contents-text-2: #1447e6;
+  --table-of-contents-bg-1: #1c39fe11;
+
+  --category-bg-1: oklch(77.8% 0.114 255);
+  --category-bg-2: oklch(86.1% 0.078 239);
+  --category-text-1: oklch(37.3% 0.058 254.3);
+
+  --tag-bg-1: oklch(80.3% 0.034 260.2);
+  --tag-bg-2: oklch(90.6% 0.037 257.3);
+  --tag-text-1: oklch(20.2% 0.011 261.8);
+}
+
+/* ダークテーマ */
+.dark {
+  --background: #1a1a1e;
+  --border: #475569;
+  --text-1: #f8fafc; /* 見出しとか */
+  --text-2: #d1d5dc; /* 本文 */
+  --text-3: #99a1af; /* 補助テキスト */
+  --text-url-1: #51a2ff;
+  --text-url-2: #8ec5ff;
+  --bg-scroll-bar: #4b5563; /* スクロールバーの背景色 */
+
+  /* ダークテーマのテーブル用CSS変数 */
+  --table-header-bg: #111827;
+  --table-header-text: #f8fafc;
+  --table-cell-bg: #1f2937;
+  --table-cell-text: #e2e8f0;
+  --table-border: #374151;
+  --table-hover-bg: #374151;
+  --table-hover-text: #f1f5f9;
+  --table-accent: #fcd34d;
+
+  --alert-box-bg: #1e293b; /* アラートボックスの背景色 */
+
+  --table-of-contents-text-1: #51a2ff;
+  --table-of-contents-text-2: #8ec5ff;
+  --table-of-contents-bg-1: #1c398e33;
+
+  --category-bg-1: #1c398e;
+  --category-bg-2: #193cb8;
+  --category-text-1: #bedbff;
+
+  --tag-bg-1: #364153;
+  --tag-bg-2: #475569;
+  --tag-text-1: #d1d5dc;
+}

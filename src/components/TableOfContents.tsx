@@ -130,9 +130,9 @@ export function TableOfContents({
   return (
     <nav className={`toc ${className}`}>
       <div className="sticky top-4">
-        <div className="backdrop-blur-sm rounded-lg border border-gray-700 shadow-lg overflow-hidden">
+        <div className="backdrop-blur-sm rounded-lg border border-theme-border shadow-lg overflow-hidden">
           <div className="p-2">
-            <h3 className="text-lg font-semibold text-gray-200 flex items-center">
+            <h3 className="text-lg font-semibold text-theme-1 flex items-center">
               <svg
                 className="w-5 h-5 mr-2"
                 fill="none"
@@ -157,12 +157,12 @@ export function TableOfContents({
                     onClick={() => scrollToHeading(id)}
                     className={`
                       block w-full text-left text-sm transition-all duration-200 
-                      hover:text-blue-300 rounded px-2 py-1
+                      hover:text-table-of-contents-2 rounded px-2 py-1
                       cursor-pointer border-l-2
                       ${
                         activeId === id
-                          ? "text-blue-400 font-medium border-blue-400 bg-blue-900/20"
-                          : "text-gray-400 border-transparent hover:border-gray-600"
+                          ? "text-table-of-contents-1 font-medium border-blue-400 bg-table-of-contents-1"
+                          : "text-theme-3 border-transparent hover:border-gray-600"
                       }
                       ${level === 1 ? "ml-0" : ""}
                       ${level === 2 ? "ml-3" : ""}
