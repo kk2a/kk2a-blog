@@ -9,7 +9,7 @@ import { siteConfig } from "@/config/site";
 import remarkGfm from "remark-gfm";
 import CategoryList from "@/components/CategoryList";
 import TagList from "@/components/TagList";
-import { Tag } from "lucide-react";
+// import { Tag } from "lucide-react";
 
 interface Props {
   params: Promise<{ slug: string }>;
