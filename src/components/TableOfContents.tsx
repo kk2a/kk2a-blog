@@ -5,50 +5,28 @@ import type { TocItem } from "@/lib/toc";
 
 interface TableOfContentsProps {
   className?: string;
-  tocItems?: TocItem[]; // 外部から渡されるTOCアイテム
+  headingSelector?: string; // カスタムセレクタ（オプション）
+}
+
+function getHeadingsFromMain(customSelector?: string): NodeListOf<Element> {
+  // カスタムセレクタが指定されている場合はそれを使用
+  if (customSelector) {
+    const customHeadings = document.querySelectorAll(customSelector);
+    return customHeadings;
+  }
+
+  return document.querySelectorAll("h1, h2, h3, h4, h5, h6");
 }
 
 export function TableOfContents({
   className = "",
-  tocItems,
+  headingSelector,
 }: TableOfContentsProps) {
   const [toc, setToc] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
-    // 外部からtocItemsが渡された場合はそれを使用
-    if (tocItems && tocItems.length > 0) {
-      setToc(tocItems);
-
-      // MDXが生成した見出し要素のIDを確認・設定
-      setTimeout(() => {
-        const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
-        const updatedTocItems = [...tocItems];
-
-        headings.forEach((heading, index) => {
-          if (index < updatedTocItems.length) {
-            const tocItem = updatedTocItems[index];
-            const headingText = heading.textContent || "";
-
-            // 見出しテキストが一致する場合、実際のIDを使用
-            if (headingText.trim() === tocItem.text.trim()) {
-              if (heading.id) {
-                tocItem.id = heading.id;
-              } else {
-                heading.id = tocItem.id;
-              }
-            }
-          }
-        });
-
-        setToc(updatedTocItems);
-      }, 200);
-
-      return;
-    }
-
-    // フォールバック: DOMから見出しを取得してTOCを生成
-    const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
+    const headings = getHeadingsFromMain(headingSelector);
     const tocItemsFromDom: TocItem[] = [];
 
     headings.forEach((heading, index) => {
@@ -66,7 +44,7 @@ export function TableOfContents({
     });
 
     setToc(tocItemsFromDom);
-  }, [tocItems]);
+  }, [headingSelector]);
 
   useEffect(() => {
     // スクロール時のアクティブな見出しを追跡

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
 import { mdxComponents } from "@/components/mdx/mdx-components";
 import { TableOfContents } from "@/components/TableOfContents";
-import { extractHeadingsFromMDX } from "@/lib/toc";
 import { siteConfig } from "@/config/site";
 import remarkGfm from "remark-gfm";
 import CategoryList from "@/components/CategoryList";
@@ -47,7 +46,11 @@ export default async function BlogPost({ params }: Props) {
   }
 
   // MDXコンテンツから見出しを抽出
-  const tocItems = extractHeadingsFromMDX(post.content);
+  // console.log(post.content);
+  const headingSelectors = [1, 2, 3, 4, 5, 6]
+    .map((level) => `article > div > div > div > h${level}`)
+    .join(", ");
+  // console.log(headingSelectors);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -124,7 +127,10 @@ export default async function BlogPost({ params }: Props) {
 
           {/* サイドバー（目次） */}
           <aside className="xl:w-64 xl:flex-shrink-0 xl:sticky xl:top-4 xl:self-start">
-            <TableOfContents className="xl:block hidden" tocItems={tocItems} />
+            <TableOfContents
+              className="xl:block hidden"
+              headingSelector={headingSelectors}
+            />
           </aside>
         </div>
 
