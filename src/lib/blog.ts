@@ -1,8 +1,20 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { tagMapper, categoryMapper } from "./hash";
 
 const contentDirectory = path.join(process.cwd(), "content/blog");
+
+// 初期化状態を管理する静的変数
+let isInitialized = false;
+
+// 必要時に自動初期化を行う関数
+function ensureInitialized(): void {
+  if (!isInitialized) {
+    initializeHashMappings();
+    isInitialized = true;
+  }
+}
 
 export interface BlogPost {
   slug: string;
@@ -81,4 +93,58 @@ export function getAllTags(): string[] {
     post.tags.forEach((tag) => tags.add(tag));
   });
   return Array.from(tags);
+}
+
+// ハッシュベースのヘルパー関数
+export function getTagHash(tag: string): string {
+  ensureInitialized();
+  return tagMapper.register(tag);
+}
+
+export function getTagFromHash(hash: string): string | undefined {
+  ensureInitialized();
+  return tagMapper.getOriginal(hash);
+}
+
+export function getCategoryHash(category: string): string {
+  ensureInitialized();
+  return categoryMapper.register(category);
+}
+
+export function getCategoryFromHash(hash: string): string | undefined {
+  ensureInitialized();
+  return categoryMapper.getOriginal(hash);
+}
+
+// 静的生成用のハッシュ一覧を取得
+export function getAllTagHashes(): string[] {
+  ensureInitialized();
+  const tags = getAllTags();
+  return tags.map((tag) => getTagHash(tag));
+}
+
+export function getAllCategoryHashes(): string[] {
+  ensureInitialized();
+  const categories = getAllCategories();
+  return categories.map((category) => getCategoryHash(category));
+}
+
+// 初期化時に全てのタグとカテゴリをハッシュマッパーに登録
+export function initializeHashMappings(): void {
+  try {
+    const tags = getAllTags();
+    const categories = getAllCategories();
+
+    // console.log(
+    //   `初期化中: ${tags.length}個のタグ, ${categories.length}個のカテゴリ`
+    // );
+
+    tags.forEach((tag) => tagMapper.register(tag));
+    categories.forEach((category) => categoryMapper.register(category));
+
+    // console.log("ハッシュマッピング初期化完了");
+  } catch (error) {
+    console.error("ハッシュマッピング初期化エラー:", error);
+    throw error;
+  }
 }

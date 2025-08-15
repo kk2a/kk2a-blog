@@ -1,4 +1,4 @@
-import { getAllTags, getPostsByTag } from "@/lib/blog";
+import { getAllTagHashes, getPostsByTag, getTagFromHash } from "@/lib/blog";
 import BlogCard from "@/components/BlogCard";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
@@ -8,26 +8,55 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const tags = getAllTags();
-  return tags.map((tag) => ({
-    tag: encodeURIComponent(tag),
+  const tagHashes = getAllTagHashes();
+  return tagHashes.map((tagHash) => ({
+    tag: tagHash,
   }));
 }
 
 export async function generateMetadata({ params }: Props) {
   const { tag } = await params;
-  const decodedTag = decodeURIComponent(tag);
+  const originalTag = getTagFromHash(tag);
+
+  if (!originalTag) {
+    return {
+      title: `タグが見つかりません | ${siteConfig.name}`,
+      description: `指定されたタグは存在しません`,
+    };
+  }
 
   return {
-    title: `#${decodedTag}の記事 | ${siteConfig.name}`,
-    description: `${decodedTag}タグの記事一覧`,
+    title: `#${originalTag}の記事 | ${siteConfig.name}`,
+    description: `${originalTag}タグの記事一覧`,
   };
 }
 
 export default async function TagPage({ params }: Props) {
   const { tag } = await params;
-  const decodedTag = decodeURIComponent(tag);
-  const posts = getPostsByTag(decodedTag);
+  const originalTag = getTagFromHash(tag);
+
+  if (!originalTag) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-theme-1 mb-4">
+            タグが見つかりません
+          </h1>
+          <p className="text-xl text-theme-2 mb-8">
+            指定されたタグは存在しません。
+          </p>
+          <Link
+            href="/blog"
+            className="text-url-1 hover:text-url-2 transition-colors"
+          >
+            すべての記事を見る
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const posts = getPostsByTag(originalTag);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -46,13 +75,13 @@ export default async function TagPage({ params }: Props) {
             </Link>
           </li>
           <li>/</li>
-          <li className="text-theme-1">タグ: #{decodedTag}</li>
+          <li className="text-theme-1">タグ: #{originalTag}</li>
         </ol>
       </nav>
 
       <div className="text-center mb-16">
         <h1 className="text-4xl font-bold text-theme-1 mb-4">
-          #{decodedTag}の記事
+          #{originalTag}の記事
         </h1>
         <p className="text-xl text-theme-2">
           {posts.length}件の記事が見つかりました

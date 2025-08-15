@@ -1,4 +1,8 @@
-import { getAllCategories, getPostsByCategory } from "@/lib/blog";
+import {
+  getAllCategoryHashes,
+  getPostsByCategory,
+  getCategoryFromHash,
+} from "@/lib/blog";
 import BlogCard from "@/components/BlogCard";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
@@ -8,26 +12,56 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const categories = getAllCategories();
-  return categories.map((category) => ({
-    category: encodeURIComponent(category),
+  const categoryHashes = getAllCategoryHashes();
+  return categoryHashes.map((categoryHash) => ({
+    category: categoryHash,
   }));
 }
 
 export async function generateMetadata({ params }: Props) {
   const { category } = await params;
-  const decodedCategory = decodeURIComponent(category);
+  // console.log(getAllCategoryHashes());
+  const originalCategory = getCategoryFromHash(category);
+
+  if (!originalCategory) {
+    return {
+      title: `カテゴリが見つかりません | ${siteConfig.name}`,
+      description: `指定されたカテゴリは存在しません`,
+    };
+  }
 
   return {
-    title: `${decodedCategory}の記事 | ${siteConfig.name}`,
-    description: `${decodedCategory}カテゴリの記事一覧`,
+    title: `${originalCategory}の記事 | ${siteConfig.name}`,
+    description: `${originalCategory}カテゴリの記事一覧`,
   };
 }
 
 export default async function CategoryPage({ params }: Props) {
   const { category } = await params;
-  const decodedCategory = decodeURIComponent(category);
-  const posts = getPostsByCategory(decodedCategory);
+  const originalCategory = getCategoryFromHash(category);
+
+  if (!originalCategory) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-theme-1 mb-4">
+            カテゴリが見つかりません
+          </h1>
+          <p className="text-xl text-theme-2 mb-8">
+            指定されたカテゴリは存在しません。
+          </p>
+          <Link
+            href="/blog"
+            className="text-url-1 hover:text-url-2 transition-colors"
+          >
+            すべての記事を見る
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const posts = getPostsByCategory(originalCategory);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -46,13 +80,13 @@ export default async function CategoryPage({ params }: Props) {
             </Link>
           </li>
           <li>/</li>
-          <li className="text-theme-1">カテゴリー: {decodedCategory}</li>
+          <li className="text-theme-1">カテゴリー: {originalCategory}</li>
         </ol>
       </nav>
 
       <div className="text-center mb-16">
         <h1 className="text-4xl font-bold text-theme-1 mb-4">
-          {decodedCategory}の記事
+          {originalCategory}の記事
         </h1>
         <p className="text-xl text-theme-2">
           {posts.length}件の記事が見つかりました
