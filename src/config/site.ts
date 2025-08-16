@@ -13,7 +13,7 @@
 export const siteConfig = {
   // サイト基本情報
   name: "死人に口なし",
-  title: "",
+  title: "死人に口なし",
   description: "気になったことを書きます",
 
   // SEO設定

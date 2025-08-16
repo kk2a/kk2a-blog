@@ -1,0 +1,41 @@
+/* KaTeX 数式用のカスタムスタイル */
+
+/* KaTeX のテーマ対応 */
+.katex {
+  color: var(--text-2);
+}
+
+/* 数式のレスポンシブ対応 */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+.katex-display::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.katex-display::-webkit-scrollbar-thumb {
+  /* 最初は透明にしておく */
+  background-color: transparent;
+  border-radius: 6px;
+}
+.katex-display:hover::-webkit-scrollbar-thumb {
+  background-color: var(--bg-scroll-bar); /* スクロールバーの色 */
+}
+
+@media (max-width: 768px) {
+  .katex-display {
+    font-size: 0.9em;
+  }
+}
+
+/* KaTeX エラー表示のスタイル */
+.katex-error {
+  color: #cc0000;
+  background-color: #ffeeee;
+  border: 1px solid #cc0000;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-family: monospace;
+}

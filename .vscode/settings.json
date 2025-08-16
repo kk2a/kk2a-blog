@@ -6,5 +6,9 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": ["source.fixAll.eslint"],
   "css.lint.unknownAtRules": "ignore",
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "files.associations": {
+    // MDXの拡張機能がもっと賢かったらいいのにな
+    "*.mdx": "markdown"
+  }
 }

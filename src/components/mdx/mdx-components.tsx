@@ -24,10 +24,13 @@ const createHeading = (level: number, className: string) => {
 
     if (!headingId && typeof children === "string") {
       const slug = generateSlug(children);
-      headingId = slug || `heading-${Math.random().toString(36).substr(2, 9)}`;
+      headingId =
+        slug || `heading-${globalThis.Math.random().toString(36).substr(2, 9)}`;
     } else if (!headingId) {
       // childrenが文字列でない場合（JSX要素など）の場合
-      headingId = `heading-${Math.random().toString(36).substr(2, 9)}`;
+      headingId = `heading-${globalThis.Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
     }
 
     return React.createElement(
@@ -75,13 +78,21 @@ export const mdxComponents = {
     </blockquote>
   ),
   code: ({ children }: { children: React.ReactNode }) => (
-    <code className="bg-gray-800 text-gray-200 px-1 py-0.5 rounded text-sm font-mono">
+    <code
+      className="px-1 py-0.5 rounded text-sm font-mono"
+      style={{ backgroundColor: "var(--code-bg)", color: "var(--code-text)" }}
+    >
       {children}
     </code>
   ),
   pre: ({ children }: { children: React.ReactNode }) => (
     <pre className="border rounded-lg p-4 overflow-x-auto my-4">
-      <code className="text-gray-100 text-sm font-mono">{children}</code>
+      <code
+        className="text-sm font-mono"
+        style={{ backgroundColor: "var(--code-bg)", color: "var(--code-text)" }}
+      >
+        {children}
+      </code>
     </pre>
   ),
   a: ({ href, children }: { href: string; children: React.ReactNode }) => (

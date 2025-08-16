@@ -6,6 +6,7 @@
 @import "./styles/components.css";
 @import "./styles/animations.css";
 @import "./styles/mdx.css";
+@import "./styles/math.css";
 
 body {
   background-color: var(--background);

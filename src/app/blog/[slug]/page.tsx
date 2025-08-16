@@ -8,6 +8,8 @@ import { siteConfig } from "@/config/site";
 import remarkGfm from "remark-gfm";
 import CategoryList from "@/components/CategoryList";
 import TagList from "@/components/TagList";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 // import { Tag } from "lucide-react";
 
 interface Props {
@@ -118,7 +120,8 @@ export default async function BlogPost({ params }: Props) {
                 components={mdxComponents}
                 options={{
                   mdxOptions: {
-                    remarkPlugins: [remarkGfm],
+                    remarkPlugins: [remarkGfm, remarkMath],
+                    rehypePlugins: [rehypeKatex],
                   },
                 }}
               />

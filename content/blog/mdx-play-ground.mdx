@@ -18,6 +18,42 @@ tags: ["MDX", "React", "コンポーネント", "実験", "デモ"]
 
 MDX（Markdown + JSX）を使用することで、通常のMarkdownにReactコンポーネントを組み込むことができます。このページでは、実際に使用可能なコンポーネントを網羅的に紹介します。
 
+{/* ===== 数式セクション ===== */}
+## 📐 数式 (Math)
+
+KaTeX を使用した数式レンダリングが可能です。
+
+### インライン数式
+
+ピタゴラスの定理は $a^2 + b^2 = c^2$ で表されます。
+
+また、オイラーの公式 $e^{i\pi} + 1 = 0$ は美しい数式として有名です。
+
+まじか $1 < 2$ が成り立つのか！
+
+### ブロック数式
+
+ガウスの積分：
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+
+フーリエ変換：
+
+$$
+F(\omega) = \int_{-\infty}^{\infty} f(t) e^{-i\omega t} dt
+$$
+
+### 複数行の数式
+$$
+\begin{align}
+  F &= ma \\
+  E &= mc^2 \\
+  p &= mv
+\end{align}
+$$
+
 {/* ===== AlertBox セクション ===== */}
 ## 🚨 AlertBox コンポーネント
 
@@ -60,133 +96,138 @@ Markdownの**太字**や*斜体*も使用できます！
 
 ### JavaScript/TypeScript
 <CodeBlock language="typescript" title="React Hook の例">
-{`import { useState, useEffect } from 'react';
+{`
+  import { useState, useEffect } from 'react';
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
+  interface User {
+    id: number;
+    name: string;
+    email: string;
+  }
 
-const useUser = (userId: number) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch(\`/api/users/\${userId}\`);
-        const userData = await response.json();
-        setUser(userData);
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const useUser = (userId: number) => {
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
     
-    fetchUser();
-  }, [userId]);
-  
-  return { user, loading };
-};`}
+    useEffect(() => {
+      const fetchUser = async () => {
+        try {
+          const response = await fetch(\`/api/users/\${userId}\`);
+          const userData = await response.json();
+          setUser(userData);
+        } catch (error) {
+          console.error('Failed to fetch user:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchUser();
+    }, [userId]);
+    
+    return { user, loading };
+  };
+`}
 </CodeBlock>
 
 ### Python
 <CodeBlock language="python" title="データ分析の例">
-{`import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
+{`
+  import pandas as pd
+  import matplotlib.pyplot as plt
+  import numpy as np
 
-# データの読み込み
-df = pd.read_csv('data.csv')
+  # データの読み込み
+  df = pd.read_csv('data.csv')
 
-# 基本統計の表示
-print(df.describe())
+  # 基本統計の表示
+  print(df.describe())
 
-# データの可視化
-plt.figure(figsize=(10, 6))
-plt.hist(df['score'], bins=30, alpha=0.7)
-plt.title('Score Distribution')
-plt.xlabel('Score')
-plt.ylabel('Frequency')
-plt.show()
+  # データの可視化
+  plt.figure(figsize=(10, 6))
+  plt.hist(df['score'], bins=30, alpha=0.7)
+  plt.title('Score Distribution')
+  plt.xlabel('Score')
+  plt.ylabel('Frequency')
+  plt.show()
 
-# 外れ値の検出
-Q1 = df['score'].quantile(0.25)
-Q3 = df['score'].quantile(0.75)
-IQR = Q3 - Q1
-outliers = df[(df['score'] < Q1 - 1.5 * IQR) | (df['score'] > Q3 + 1.5 * IQR)]
-print(f"検出された外れ値の数: {len(outliers)}")`}
-</CodeBlock>
+  # 外れ値の検出
+  Q1 = df['score'].quantile(0.25)
+  Q3 = df['score'].quantile(0.75)
+  IQR = Q3 - Q1
+  outliers = df[(df['score'] < Q1 - 1.5 * IQR) | (df['score'] > Q3 + 1.5 * IQR)]
+  print(f"検出された外れ値の数: {len(outliers)}")
+`}</CodeBlock>
 
 ### C++（競技プログラミング）
 <CodeBlock language="cpp" title="Union-Find（素集合データ構造）">
-{`#include <bits/stdc++.h>
-using namespace std;
+{`
+  #include <bits/stdc++.h>
+  using namespace std;
 
-class UnionFind {
-private:
-    vector<int> parent, rank;
-    
-public:
-    UnionFind(int n) : parent(n), rank(n, 0) {
-        iota(parent.begin(), parent.end(), 0);
-    }
-    
-    int find(int x) {
-        if (parent[x] != x) {
-            parent[x] = find(parent[x]); // 経路圧縮
-        }
-        return parent[x];
-    }
-    
-    bool unite(int x, int y) {
-        int px = find(x), py = find(y);
-        if (px == py) return false;
-        
-        // Union by rank
-        if (rank[px] < rank[py]) swap(px, py);
-        parent[py] = px;
-        if (rank[px] == rank[py]) rank[px]++;
-        
-        return true;
-    }
-    
-    bool same(int x, int y) {
-        return find(x) == find(y);
-    }
-};`}
-</CodeBlock>
+  class UnionFind {
+  private:
+      vector<int> parent, rank;
+      
+  public:
+      UnionFind(int n) : parent(n), rank(n, 0) {
+          iota(parent.begin(), parent.end(), 0);
+      }
+      
+      int find(int x) {
+          if (parent[x] != x) {
+              parent[x] = find(parent[x]); // 経路圧縮
+          }
+          return parent[x];
+      }
+      
+      bool unite(int x, int y) {
+          int px = find(x), py = find(y);
+          if (px == py) return false;
+          
+          // Union by rank
+          if (rank[px] < rank[py]) swap(px, py);
+          parent[py] = px;
+          if (rank[px] == rank[py]) rank[px]++;
+          
+          return true;
+      }
+      
+      bool same(int x, int y) {
+          return find(x) == find(y);
+      }
+  };
+`}</CodeBlock>
 
 ### YAML設定ファイル
 <CodeBlock language="yaml" title="Next.js 設定例">
-{`# next.config.js equivalent in YAML
-experimental:
-  appDir: true
-  turbopack: true
-  
-images:
-  domains:
-    - example.com
-    - cdn.example.com
-  formats:
-    - image/webp
-    - image/avif
-
-env:
-  CUSTOM_KEY: value
-  API_URL: https://api.example.com
-
-webpack:
+{`
+  # next.config.js equivalent in YAML
   experimental:
-    esmExternals: true
-  
-redirects:
-  - source: /old-path
-    destination: /new-path
-    permanent: true`}
-</CodeBlock>
+    appDir: true
+    turbopack: true
+    
+  images:
+    domains:
+      - example.com
+      - cdn.example.com
+    formats:
+      - image/webp
+      - image/avif
+
+  env:
+    CUSTOM_KEY: value
+    API_URL: https://api.example.com
+
+  webpack:
+    experimental:
+      esmExternals: true
+    
+  redirects:
+    - source: /old-path
+      destination: /new-path
+      permanent: true
+`}</CodeBlock>
 
 {/* ===== ImageWithCaption セクション ===== */}
 ## 🖼️ ImageWithCaption コンポーネント
@@ -347,20 +388,7 @@ MDXではHTMLタグも自由に使用できます：
   <TwitterIcon className="w-6 h-6 text-theme-2 hover:text-theme-1 transition-colors cursor-pointer" />
 </div>
 
-{/* ===== 数式表示（将来的な拡張）===== */}
-## 🧮 数式表示（予定）
 
-<AlertBox type="info">
-将来的にKaTeX或いはMathJaxを使用した数式表示機能を追加予定です。
-</AlertBox>
-
-```
-// 例：二次方程式の解の公式
-x = (-b ± √(b² - 4ac)) / (2a)
-
-// 例：オイラーの恒等式
-e^(iπ) + 1 = 0
-```
 
 {/* ===== パフォーマンスのメモ ===== */}
 ## ⚡ パフォーマンスについて
@@ -376,7 +404,7 @@ e^(iπ) + 1 = 0
 ## 🚀 今後追加予定の機能
 
 - [ ] **Chart.js統合**: グラフとチャートの表示
-- [ ] **数式表示**: KaTeXを使用した数学記法
+- [x] **数式表示**: KaTeXを使用した数学記法
 - [ ] **インタラクティブコンポーネント**: 折り畳み可能なセクション
 - [ ] **画像ギャラリー**: ImageWithCaptionの拡張版
 - [ ] **タブ表示**: 複数のコードサンプルの切り替え

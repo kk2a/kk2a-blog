@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "katex/dist/katex.min.css"; // KaTeX CSS
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -28,11 +29,16 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     siteName: siteConfig.name,
     type: "website",
+    images: ["/favicon.ico"],
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.title,
     description: siteConfig.description,
+    images: ["/favicon.ico"],
+  },
+  icons: {
+    icon: "/favicon.ico",
   },
 };
 

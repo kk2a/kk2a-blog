@@ -67,9 +67,9 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
         </div>
       )}
 
-      <div className="relative bg-[#1f1f1f]">
+      <div className="relative" style={{ backgroundColor: "var(--code-bg)" }}>
         <pre className="p-4 overflow-x-auto text-sm font-mono">
-          <code className="text-gray-100">{getCode()}</code>
+          <code style={{ color: "var(--code-text)" }}>{getCode()}</code>
         </pre>
 
         {!title && !language && (
