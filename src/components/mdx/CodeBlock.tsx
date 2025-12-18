@@ -55,7 +55,7 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
           </div>
           <button
             onClick={handleCopy}
-            className="p-1 rounded hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-colors"
+            className="p-1 rounded hover:bg-gray-700 text-gray-400 hover:text-gray-200"
             title={copied ? "Copied!" : "Copy code"}
           >
             {copied ? (
@@ -67,15 +67,15 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
         </div>
       )}
 
-      <div className="relative" style={{ backgroundColor: "var(--code-bg)" }}>
-        <pre className="p-4 overflow-x-auto text-sm font-mono">
-          <code style={{ color: "var(--code-text)" }}>{getCode()}</code>
+      <div className="relative bg-code">
+        <pre className="p-4 overflow-x-auto text-sm font-mono custom-scrollbar">
+          <code className="text-code">{getCode()}</code>
         </pre>
 
         {!title && !language && (
           <button
             onClick={handleCopy}
-            className="absolute top-2 right-2 p-2 rounded hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-colors"
+            className="absolute top-2 right-2 p-2 rounded hover:bg-gray-700 text-gray-400 hover:text-gray-200"
             title={copied ? "Copied!" : "Copy code"}
           >
             {copied ? (

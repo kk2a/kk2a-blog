@@ -1,0 +1,35 @@
+---
+title: "LabelRef テスト"
+date: "2025-10-12"
+excerpt: "LabelRef機能のテスト"
+categories: ["テスト"]
+tags: ["テスト"]
+---
+
+# LabelRef テスト
+
+## 基本的なテスト
+
+<LabelRef id="test-def" />
+
+<Definition id="test-def">
+これはテスト定義です。
+</Definition>
+
+<Theorem id="test-thm">
+これはテスト定理です。
+</Theorem>
+
+<Lemma id="test-lemma">
+これはテスト補題です。
+</Lemma>
+
+## 参照テスト
+
+定義の参照: <LabelRef id="test-def" />
+
+定理の参照: <LabelRef id="test-thm" />
+
+補題の参照: <LabelRef id="test-lemma" />
+
+未定義の参照: <LabelRef id="undefined-label" />

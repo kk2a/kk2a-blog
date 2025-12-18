@@ -1,5 +1,6 @@
 import Link from "next/link";
 import React from "react";
+import { getTagId } from "@/lib/blog";
 
 interface TagListProps {
   tags: string[];
@@ -7,14 +8,17 @@ interface TagListProps {
 }
 
 const TagList: React.FC<TagListProps> = ({ tags, displayLimit }) => {
+  const className =
+    "rounded px-2 py-1 text-sm bg-tag-1 hover:bg-tag-2 text-tag-1 btn-transition";
+
   return (
     <div className="flex flex-wrap gap-2">
       {displayLimit
         ? tags.slice(0, displayLimit).map((tag) => (
             <Link
               key={tag}
-              href={`/tags/${tag}`}
-              className="rounded px-2 py-1 text-sm bg-tag-1 hover:bg-tag-2 text-tag-1 transition-colors"
+              href={`/tags/${getTagId(tag)}`}
+              className={className}
             >
               #{tag}
             </Link>
@@ -22,8 +26,8 @@ const TagList: React.FC<TagListProps> = ({ tags, displayLimit }) => {
         : tags.map((tag) => (
             <Link
               key={tag}
-              href={`/tags/${tag}`}
-              className="rounded px-2 py-1 text-sm bg-tag-1 hover:bg-tag-2 text-tag-1 transition-colors"
+              href={`/tags/${getTagId(tag)}`}
+              className={className}
             >
               #{tag}
             </Link>

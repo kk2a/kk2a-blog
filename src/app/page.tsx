@@ -4,7 +4,7 @@ import BlogCard from "@/components/BlogCard";
 import { siteConfig } from "@/config/site";
 
 export default function Home() {
-  const posts = getAllPosts().slice(0, siteConfig.blog.postsPerPage); // 設定で指定した件数を表示
+  const posts = getAllPosts().reverse().slice(0, siteConfig.blog.postsPerPage); // 新しい記事を最初に表示
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,7 +18,7 @@ export default function Home() {
         </p>
         <Link
           href="/blog"
-          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold btn-transition"
         >
           記事を読む
         </Link>
@@ -30,7 +30,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-theme-1">最新記事</h2>
           <Link
             href="/blog"
-            className="text-url-1 hover:text-url-2 font-medium transition-colors"
+            className="text-url-1 hover:text-url-2 visited:text-url-visited visited:hover:text-url-visited-hover font-medium text-transition"
           >
             すべて見る →
           </Link>

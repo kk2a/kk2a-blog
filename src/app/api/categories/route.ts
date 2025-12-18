@@ -1,28 +1,32 @@
-// カテゴリマッピング情報を返すAPIエンドポイント
+// カテゴリIDマッピング情報を返すAPIエンドポイント
 import { NextResponse } from "next/server";
-import { getAllCategoryHashes, getCategoryFromHash } from "@/lib/blog";
+import { getAllCategoryIds, getCategoryFromId } from "@/lib/blog";
 
 // Static export対応
 export const dynamic = "force-static";
 
 export async function GET() {
   try {
-    // lib/blog.tsからカテゴリ情報を取得
-    const categoryHashes = getAllCategoryHashes();
+    // lib/blog.tsからカテゴリID情報を取得
+    const categoryIds = getAllCategoryIds();
 
-    // ハッシュ → 名前のマッピングを構築
-    const categories: Record<string, string> = {};
+    // ID → 名前のマッピングを構築
+    const idToCategory: Record<number, string> = {};
+    const categoryToId: Record<string, number> = {};
 
-    categoryHashes.forEach((hash) => {
-      const name = getCategoryFromHash(hash);
-      if (name) {
-        categories[hash] = name;
+    categoryIds.forEach((id) => {
+      const categoryName = getCategoryFromId(id);
+      if (categoryName) {
+        idToCategory[id] = categoryName;
+        categoryToId[categoryName] = id;
       }
     });
 
     const categoryMapping = {
-      categories,
-      categoryHashes,
+      ids: categoryIds,
+      idToCategory,
+      categoryToId,
+      message: "IDベースのカテゴリマッピング情報",
     };
 
     return NextResponse.json(categoryMapping, {
@@ -31,9 +35,9 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("カテゴリマッピング読み込みエラー:", error);
+    console.error("カテゴリIDマッピング読み込みエラー:", error);
     return NextResponse.json(
-      { error: "Failed to load category mappings" },
+      { error: "Failed to load category ID mappings" },
       { status: 500 }
     );
   }

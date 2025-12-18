@@ -16,13 +16,13 @@ export default function NotFound() {
       <div className="flex flex-col sm:flex-row justify-center gap-4">
         <Link
           href="/"
-          className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold btn-transition"
         >
           ホームに戻る
         </Link>
         <Link
           href="/blog"
-          className="inline-block border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+          className="inline-block border-2 border-blue-600 text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 btn-transition"
         >
           記事一覧を見る
         </Link>

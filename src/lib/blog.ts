@@ -1,20 +1,10 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
-import { tagMapper, categoryMapper } from "./hash";
+import { tagIdMapper, categoryIdMapper } from "./id-mapper";
+import { blogIdMapper } from "./blog-id-mapper";
 
 const contentDirectory = path.join(process.cwd(), "content/blog");
-
-// 初期化状態を管理する静的変数
-let isInitialized = false;
-
-// 必要時に自動初期化を行う関数
-function ensureInitialized(): void {
-  if (!isInitialized) {
-    initializeHashMappings();
-    isInitialized = true;
-  }
-}
 
 export interface BlogPost {
   slug: string;
@@ -40,7 +30,16 @@ export function getAllPosts(): BlogPost[] {
       return getPostBySlug(slug);
     })
     .filter((post) => post !== null)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => {
+      // 日付で比較（古い順）
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+      // 日付が同じ場合はスラグの辞書順
+      return a.slug.localeCompare(b.slug);
+    });
 
   return allPosts;
 }
@@ -95,56 +94,60 @@ export function getAllTags(): string[] {
   return Array.from(tags);
 }
 
-// ハッシュベースのヘルパー関数
-export function getTagHash(tag: string): string {
-  ensureInitialized();
-  return tagMapper.register(tag);
+// ID管理のヘルパー関数
+export function getTagId(tag: string): number {
+  return tagIdMapper.getId(tag);
 }
 
-export function getTagFromHash(hash: string): string | undefined {
-  ensureInitialized();
-  return tagMapper.getOriginal(hash);
+export function getTagFromId(id: number): string | undefined {
+  return tagIdMapper.getNameById(id);
 }
 
-export function getCategoryHash(category: string): string {
-  ensureInitialized();
-  return categoryMapper.register(category);
+export function getCategoryId(category: string): number {
+  return categoryIdMapper.getId(category);
 }
 
-export function getCategoryFromHash(hash: string): string | undefined {
-  ensureInitialized();
-  return categoryMapper.getOriginal(hash);
+export function getCategoryFromId(id: number): string | undefined {
+  return categoryIdMapper.getNameById(id);
 }
 
-// 静的生成用のハッシュ一覧を取得
-export function getAllTagHashes(): string[] {
-  ensureInitialized();
+// 静的生成用のID一覧を取得
+export function getAllTagIds(): number[] {
   const tags = getAllTags();
-  return tags.map((tag) => getTagHash(tag));
+  return tags.map((tag) => getTagId(tag));
 }
 
-export function getAllCategoryHashes(): string[] {
-  ensureInitialized();
+export function getAllCategoryIds(): number[] {
   const categories = getAllCategories();
-  return categories.map((category) => getCategoryHash(category));
+  return categories.map((category) => getCategoryId(category));
 }
 
-// 初期化時に全てのタグとカテゴリをハッシュマッパーに登録
-export function initializeHashMappings(): void {
-  try {
-    const tags = getAllTags();
-    const categories = getAllCategories();
+// ブログID管理のヘルパー関数
+export function getBlogId(slug: string): number {
+  return blogIdMapper.getId(slug);
+}
 
-    // console.log(
-    //   `初期化中: ${tags.length}個のタグ, ${categories.length}個のカテゴリ`
-    // );
+export function getBlogSlugFromId(id: number): string | undefined {
+  return blogIdMapper.getSlugById(id);
+}
 
-    tags.forEach((tag) => tagMapper.register(tag));
-    categories.forEach((category) => categoryMapper.register(category));
+// 静的生成用のブログID一覧を取得
+export function getAllBlogIds(): number[] {
+  const posts = getAllPosts();
+  return posts.map((post) => getBlogId(post.slug));
+}
 
-    // console.log("ハッシュマッピング初期化完了");
-  } catch (error) {
-    console.error("ハッシュマッピング初期化エラー:", error);
-    throw error;
-  }
+export function getRegularBlogIds(): number[] {
+  return blogIdMapper.getRegularIds();
+}
+
+export function getTestBlogIds(): number[] {
+  return blogIdMapper.getTestIds();
+}
+
+// ブログ記事をIDで取得
+export function getBlogPostById(id: number): BlogPost | null {
+  const slug = getBlogSlugFromId(id);
+  if (!slug) return null;
+  return getPostBySlug(slug);
 }

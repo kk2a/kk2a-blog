@@ -40,3 +40,318 @@
 .prose li > ol {
   padding-left: 0.5rem;
 }
+
+/* 注釈機能のスタイル */
+.footnote-ref {
+  font-size: 0.9rem;
+  line-height: 1;
+  margin-left: 0.1rem;
+  margin-right: 0.1rem;
+}
+
+.footnotes {
+  font-size: 0.875rem;
+}
+
+.footnotes ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+}
+
+.footnotes li {
+  position: relative;
+  padding-left: 0.5rem;
+}
+
+.footnotes li::marker {
+  font-weight: 500;
+  color: var(--theme-2);
+}
+
+/* 参考文献機能のスタイル */
+.reference-ref {
+  font-size: 0.9rem;
+  line-height: 1;
+  margin-left: 0.1rem;
+  margin-right: 0.1rem;
+}
+
+.references {
+  font-size: 0.875rem;
+}
+
+.references ol {
+  list-style: none;
+  padding-left: 0;
+}
+
+.references li {
+  position: relative;
+  padding-left: 0;
+  margin-bottom: 0.75rem;
+}
+
+/* 数学コンポーネントのスタイル */
+.math-box {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.math-box .math-content {
+  font-size: 0.95rem;
+}
+
+/* 数学ボックス内の段落のマージンを調整 */
+.math-box p {
+  margin-bottom: 0 !important;
+}
+
+.math-box p:not(:last-child) {
+  margin-bottom: 0.5rem !important;
+}
+
+.proof {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.proof .proof-symbol {
+  float: right;
+  margin-top: 0.5rem;
+}
+
+/* 証明ボックス内の段落のマージンを調整 */
+.proof p {
+  margin-bottom: 0 !important;
+}
+
+.proof p:not(:last-child) {
+  margin-bottom: 0.5rem !important;
+}
+
+/* 証明終了記号の調整 */
+.proof .flex.justify-between .flex-1 p:last-child {
+  display: inline;
+  margin-bottom: 0 !important;
+}
+
+.solution {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* 解答ボックス内の段落のマージンを調整 */
+.solution p {
+  margin-bottom: 0 !important;
+}
+
+.solution p:not(:last-child) {
+  margin-bottom: 0.5rem !important;
+}
+
+/* 数学コンポーネント用のCSS変数 */
+:root {
+  /* 定理 */
+  --math-theorem-text: rgb(29 78 216);
+  --math-theorem-bg: rgb(239 246 255);
+  --math-theorem-border: rgb(59 130 246);
+
+  /* 命題 */
+  --math-proposition-text: rgb(185 28 28);
+  --math-proposition-bg: rgb(254 242 242);
+  --math-proposition-border: rgb(239 68 68);
+
+  /* 補題 */
+  --math-lemma-text: rgb(126 34 206);
+  --math-lemma-bg: rgb(250 245 255);
+  --math-lemma-border: rgb(168 85 247);
+
+  /* 系 */
+  --math-corollary-text: rgb(67 56 202);
+  --math-corollary-bg: rgb(238 242 255);
+  --math-corollary-border: rgb(99 102 241);
+
+  /* 定義 */
+  --math-definition-text: rgb(21 128 61);
+  --math-definition-bg: rgb(240 253 244);
+  --math-definition-border: rgb(34 197 94);
+
+  /* 例 */
+  --math-example-text: rgb(194 65 12);
+  --math-example-bg: rgb(255 247 237);
+  --math-example-border: rgb(249 115 22);
+
+  /* 注意 */
+  --math-remark-text: rgb(161 98 7);
+  --math-remark-bg: rgb(254 252 232);
+  --math-remark-border: rgb(234 179 8);
+
+  /* 問題 */
+  --math-problem-text: rgb(15 118 110);
+  --math-problem-bg: rgb(240 253 250);
+  --math-problem-border: rgb(20 184 166);
+
+  /* 証明 */
+  --math-proof-text: rgb(75 85 99);
+  --math-proof-bg: rgb(249 250 251);
+  --math-proof-border: rgb(156 163 175);
+
+  /* 解答 */
+  --math-solution-text: rgb(71 85 105);
+  --math-solution-bg: rgb(248 250 252);
+  --math-solution-border: rgb(148 163 184);
+}
+
+/* ダークモード用のCSS変数 */
+:root.dark {
+  /* 定理 - ダークモード */
+  --math-theorem-text: rgb(147 197 253);
+  --math-theorem-bg: rgba(29 78 216 / 0.2);
+  --math-theorem-border: rgb(59 130 246);
+
+  /* 命題 - ダークモード */
+  --math-proposition-text: rgb(252 165 165);
+  --math-proposition-bg: rgba(185 28 28 / 0.2);
+  --math-proposition-border: rgb(239 68 68);
+
+  /* 補題 - ダークモード */
+  --math-lemma-text: rgb(196 181 253);
+  --math-lemma-bg: rgba(126 34 206 / 0.2);
+  --math-lemma-border: rgb(168 85 247);
+
+  /* 系 - ダークモード */
+  --math-corollary-text: rgb(165 180 252);
+  --math-corollary-bg: rgba(67 56 202 / 0.2);
+  --math-corollary-border: rgb(99 102 241);
+
+  /* 定義 - ダークモード */
+  --math-definition-text: rgb(134 239 172);
+  --math-definition-bg: rgba(21 128 61 / 0.2);
+  --math-definition-border: rgb(34 197 94);
+
+  /* 例 - ダークモード */
+  --math-example-text: rgb(251 191 36);
+  --math-example-bg: rgba(194 65 12 / 0.2);
+  --math-example-border: rgb(249 115 22);
+
+  /* 注意 - ダークモード */
+  --math-remark-text: rgb(250 204 21);
+  --math-remark-bg: rgba(161 98 7 / 0.2);
+  --math-remark-border: rgb(234 179 8);
+
+  /* 問題 - ダークモード */
+  --math-problem-text: rgb(94 234 212);
+  --math-problem-bg: rgba(15 118 110 / 0.2);
+  --math-problem-border: rgb(20 184 166);
+
+  /* 証明 - ダークモード */
+  --math-proof-text: rgb(209 213 219);
+  --math-proof-bg: rgba(75 85 99 / 0.5);
+  --math-proof-border: rgb(156 163 175);
+
+  /* 解答 - ダークモード */
+  --math-solution-text: rgb(203 213 225);
+  --math-solution-bg: rgba(71 85 105 / 0.5);
+  --math-solution-border: rgb(148 163 184);
+}
+
+/* CSS変数を使用するクラス */
+.math-theorem-text {
+  color: var(--math-theorem-text);
+}
+.math-theorem-bg {
+  background-color: var(--math-theorem-bg);
+}
+.border-math-theorem {
+  border-color: var(--math-theorem-border);
+}
+
+.math-proposition-text {
+  color: var(--math-proposition-text);
+}
+.math-proposition-bg {
+  background-color: var(--math-proposition-bg);
+}
+.border-math-proposition {
+  border-color: var(--math-proposition-border);
+}
+
+.math-lemma-text {
+  color: var(--math-lemma-text);
+}
+.math-lemma-bg {
+  background-color: var(--math-lemma-bg);
+}
+.border-math-lemma {
+  border-color: var(--math-lemma-border);
+}
+
+.math-corollary-text {
+  color: var(--math-corollary-text);
+}
+.math-corollary-bg {
+  background-color: var(--math-corollary-bg);
+}
+.border-math-corollary {
+  border-color: var(--math-corollary-border);
+}
+
+.math-definition-text {
+  color: var(--math-definition-text);
+}
+.math-definition-bg {
+  background-color: var(--math-definition-bg);
+}
+.border-math-definition {
+  border-color: var(--math-definition-border);
+}
+
+.math-example-text {
+  color: var(--math-example-text);
+}
+.math-example-bg {
+  background-color: var(--math-example-bg);
+}
+.border-math-example {
+  border-color: var(--math-example-border);
+}
+
+.math-remark-text {
+  color: var(--math-remark-text);
+}
+.math-remark-bg {
+  background-color: var(--math-remark-bg);
+}
+.border-math-remark {
+  border-color: var(--math-remark-border);
+}
+
+.math-problem-text {
+  color: var(--math-problem-text);
+}
+.math-problem-bg {
+  background-color: var(--math-problem-bg);
+}
+.border-math-problem {
+  border-color: var(--math-problem-border);
+}
+
+.math-proof-text {
+  color: var(--math-proof-text);
+}
+.math-proof-bg {
+  background-color: var(--math-proof-bg);
+}
+.border-math-proof {
+  border-color: var(--math-proof-border);
+}
+
+.math-solution-text {
+  color: var(--math-solution-text);
+}
+.math-solution-bg {
+  background-color: var(--math-solution-bg);
+}
+.border-math-solution {
+  border-color: var(--math-solution-border);
+}

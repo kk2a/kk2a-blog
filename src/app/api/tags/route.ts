@@ -1,28 +1,32 @@
-// タグマッピング情報を返すAPIエンドポイント
+// タグIDマッピング情報を返すAPIエンドポイント
 import { NextResponse } from "next/server";
-import { getAllTagHashes, getTagFromHash } from "@/lib/blog";
+import { getAllTagIds, getTagFromId } from "@/lib/blog";
 
 // Static export対応
 export const dynamic = "force-static";
 
 export async function GET() {
   try {
-    // lib/blog.tsからタグ情報を取得
-    const tagHashes = getAllTagHashes();
+    // lib/blog.tsからタグID情報を取得
+    const tagIds = getAllTagIds();
 
-    // ハッシュ → 名前のマッピングを構築
-    const tags: Record<string, string> = {};
+    // ID → 名前のマッピングを構築
+    const idToTag: Record<number, string> = {};
+    const tagToId: Record<string, number> = {};
 
-    tagHashes.forEach((hash) => {
-      const name = getTagFromHash(hash);
-      if (name) {
-        tags[hash] = name;
+    tagIds.forEach((id) => {
+      const tagName = getTagFromId(id);
+      if (tagName) {
+        idToTag[id] = tagName;
+        tagToId[tagName] = id;
       }
     });
 
     const tagMapping = {
-      tags,
-      tagHashes,
+      ids: tagIds,
+      idToTag,
+      tagToId,
+      message: "IDベースのタグマッピング情報",
     };
 
     return NextResponse.json(tagMapping, {
@@ -31,9 +35,9 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("タグマッピング読み込みエラー:", error);
+    console.error("タグIDマッピング読み込みエラー:", error);
     return NextResponse.json(
-      { error: "Failed to load tag mappings" },
+      { error: "Failed to load tag ID mappings" },
       { status: 500 }
     );
   }

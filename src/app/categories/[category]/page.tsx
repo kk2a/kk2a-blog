@@ -1,7 +1,7 @@
 import {
-  getAllCategoryHashes,
+  getAllCategoryIds,
   getPostsByCategory,
-  getCategoryFromHash,
+  getCategoryFromId,
 } from "@/lib/blog";
 import BlogCard from "@/components/BlogCard";
 import Link from "next/link";
@@ -12,16 +12,16 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const categoryHashes = getAllCategoryHashes();
-  return categoryHashes.map((categoryHash) => ({
-    category: categoryHash,
+  const categoryIds = getAllCategoryIds();
+  return categoryIds.map((categoryId) => ({
+    category: categoryId.toString(),
   }));
 }
 
 export async function generateMetadata({ params }: Props) {
   const { category } = await params;
-  // console.log(getAllCategoryHashes());
-  const originalCategory = getCategoryFromHash(category);
+  const categoryId = parseInt(category);
+  const originalCategory = getCategoryFromId(categoryId);
 
   if (!originalCategory) {
     return {
@@ -38,9 +38,10 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function CategoryPage({ params }: Props) {
   const { category } = await params;
-  const originalCategory = getCategoryFromHash(category);
+  const categoryId = parseInt(category);
+  const originalCategory = getCategoryFromId(categoryId);
 
-  if (!originalCategory) {
+  if (!originalCategory || isNaN(categoryId)) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">
@@ -52,7 +53,7 @@ export default async function CategoryPage({ params }: Props) {
           </p>
           <Link
             href="/blog"
-            className="text-url-1 hover:text-url-2 transition-colors"
+            className="text-url-1 hover:text-url-2 visited:text-url-visited visited:hover:text-url-visited-hover text-transition"
           >
             すべての記事を見る
           </Link>
@@ -69,13 +70,13 @@ export default async function CategoryPage({ params }: Props) {
       <nav className="mb-8">
         <ol className="flex items-center space-x-2 text-sm text-theme-3">
           <li>
-            <Link href="/" className="hover:text-theme-1 transition-colors">
+            <Link href="/" className="hover:text-theme-1 text-transition">
               ホーム
             </Link>
           </li>
           <li>/</li>
           <li>
-            <Link href="/blog" className="hover:text-theme-1 transition-colors">
+            <Link href="/blog" className="hover:text-theme-1 text-transition">
               ブログ
             </Link>
           </li>
@@ -106,7 +107,7 @@ export default async function CategoryPage({ params }: Props) {
           </p>
           <Link
             href="/blog"
-            className="mt-4 inline-block text-url-1 hover:text-url-2 transition-colors"
+            className="mt-4 inline-block text-url-1 hover:text-url-2 visited:text-url-visited visited:hover:text-url-visited-hover text-transition"
           >
             すべての記事を見る
           </Link>

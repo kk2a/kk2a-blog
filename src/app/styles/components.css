@@ -3,10 +3,135 @@
   margin-bottom: 0 !important;
 }
 
+/* Radix UI Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoomOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-2px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(2px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-2px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(2px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-in {
+  animation-duration: 150ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.animate-out {
+  animation-duration: 150ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.fade-in-0 {
+  animation-name: fadeIn;
+}
+.fade-out-0 {
+  animation-name: fadeOut;
+}
+.zoom-in-95 {
+  animation-name: zoomIn;
+}
+.zoom-out-95 {
+  animation-name: zoomOut;
+}
+
+.data-\[state\=closed\]\:animate-out[data-state="closed"] {
+  animation-name: fadeOut, zoomOut;
+}
+.data-\[state\=closed\]\:fade-out-0[data-state="closed"] {
+  animation-name: fadeOut;
+}
+.data-\[state\=closed\]\:zoom-out-95[data-state="closed"] {
+  animation-name: zoomOut;
+}
+
+.data-\[side\=top\]\:slide-in-from-bottom-2[data-side="top"] {
+  animation-name: fadeIn, zoomIn, slideInFromBottom;
+}
+.data-\[side\=bottom\]\:slide-in-from-top-2[data-side="bottom"] {
+  animation-name: fadeIn, zoomIn, slideInFromTop;
+}
+.data-\[side\=left\]\:slide-in-from-right-2[data-side="left"] {
+  animation-name: fadeIn, zoomIn, slideInFromRight;
+}
+.data-\[side\=right\]\:slide-in-from-left-2[data-side="right"] {
+  animation-name: fadeIn, zoomIn, slideInFromLeft;
+}
+
 /* カスタムスクロールバースタイル */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
@@ -30,7 +155,6 @@
   padding: 0.875rem 1rem;
   text-align: left;
   border: 1px solid var(--table-border);
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .prose table th {
@@ -67,4 +191,169 @@
   .prose table td {
     padding: 0.5rem 0.75rem;
   }
+}
+
+/* ラベル参照ツールチップスタイル */
+.label-ref-tooltip {
+  background-color: var(--tooltip-bg);
+  border: 1px solid var(--tooltip-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px var(--tooltip-shadow),
+    0 10px 10px -5px var(--tooltip-shadow);
+  padding: 1rem;
+  width: 35rem;
+  min-width: 28rem;
+}
+
+.label-ref-tooltip-header {
+  color: var(--tooltip-header-text);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--tooltip-border);
+  padding-bottom: 0.25rem;
+}
+
+.label-ref-tooltip-content {
+  color: var(--tooltip-content-text);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* ツールチップ専用コンテンツラッパー */
+.tooltip-content-wrapper > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.tooltip-content-wrapper > *:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+.tooltip-content-wrapper > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* レスポンシブ対応: モバイルデバイスでの横幅調整 */
+@media (max-width: 768px) {
+  .label-ref-tooltip {
+    width: 90vw;
+    min-width: 20rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .label-ref-tooltip {
+    width: 95vw;
+    min-width: 16rem;
+    padding: 0.75rem;
+  }
+
+  .label-ref-tooltip-header {
+    font-size: 0.8rem;
+  }
+}
+
+/* 脚注ツールチップスタイル（ラベル参照と同じスタイル） */
+.footnote-tooltip {
+  background-color: var(--tooltip-bg);
+  border: 1px solid var(--tooltip-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px var(--tooltip-shadow),
+    0 10px 10px -5px var(--tooltip-shadow);
+  padding: 1rem;
+  width: 35rem;
+  min-width: 28rem;
+}
+
+.footnote-tooltip-header {
+  color: var(--tooltip-header-text);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--tooltip-border);
+  padding-bottom: 0.25rem;
+}
+
+.footnote-tooltip-content {
+  color: var(--tooltip-content-text);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* 脚注ツールチップ専用コンテンツラッパー */
+.footnote-tooltip-content > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.footnote-tooltip-content > *:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+.footnote-tooltip-content > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* 脚注ツールチップのレスポンシブ対応 */
+@media (max-width: 768px) {
+  .footnote-tooltip {
+    width: 90vw;
+    min-width: 20rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footnote-tooltip {
+    width: 95vw;
+    min-width: 16rem;
+    padding: 0.75rem;
+  }
+
+  .footnote-tooltip-header {
+    font-size: 0.8rem;
+  }
+}
+
+/* HoverCard Arrowのカスタマイズ */
+.footnote-tooltip [data-radix-popper-arrow],
+.label-ref-tooltip [data-radix-popper-arrow] {
+  width: 12px !important;
+  height: 8px !important;
+  filter: drop-shadow(0 1px 2px var(--tooltip-shadow));
+}
+
+/* Arrow SVGの塗りつぶし色を強調 */
+.footnote-tooltip [data-radix-popper-arrow] > svg,
+.label-ref-tooltip [data-radix-popper-arrow] > svg {
+  fill: var(--tooltip-border);
+  stroke: var(--tooltip-bg);
+  stroke-width: 1;
+}
+
+/* 脚注用のArrow位置調整（小さい脚注番号の中央に配置） */
+.footnote-tooltip[data-side="top"] [data-radix-popper-arrow],
+.footnote-tooltip[data-side="bottom"] [data-radix-popper-arrow] {
+  left: 8px !important;
+  transform: translateX(0) !important;
+}
+
+/* 数学コンポーネント用のArrow位置調整 */
+.label-ref-tooltip[data-side="top"] [data-radix-popper-arrow],
+.label-ref-tooltip[data-side="bottom"] [data-radix-popper-arrow] {
+  left: 20px !important;
+  transform: translateX(0) !important;
+}
+
+/* 左右配置の場合のArrow位置 */
+.footnote-tooltip[data-side="left"] [data-radix-popper-arrow],
+.footnote-tooltip[data-side="right"] [data-radix-popper-arrow] {
+  top: 8px !important;
+}
+
+.label-ref-tooltip[data-side="left"] [data-radix-popper-arrow],
+.label-ref-tooltip[data-side="right"] [data-radix-popper-arrow] {
+  top: 12px !important;
 }

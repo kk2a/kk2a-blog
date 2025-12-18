@@ -28,11 +28,23 @@
   .text-url-2 {
     color: var(--text-url-2);
   }
+  .text-url-visited {
+    color: var(--text-url-visited);
+  }
+  .text-strong {
+    color: var(--strong-color);
+  }
   .hover\:text-url-1:hover {
     color: var(--text-url-1);
   }
   .hover\:text-url-2:hover {
     color: var(--text-url-2);
+  }
+  .visited\:text-url-visited:visited {
+    color: var(--text-url-visited);
+  }
+  .visited\:hover\:text-url-visited-hover:visited:hover {
+    color: var(--text-url-visited-hover);
   }
 
   .bg-theme-background {
@@ -121,5 +133,52 @@
   }
   .hover\:bg-tag-2:hover {
     background-color: var(--tag-bg-2);
+  }
+
+  .hover\:text-card:hover {
+    color: var(--card-text-hover);
+  }
+
+  .bg-code {
+    background-color: var(--code-bg);
+  }
+  .text-code {
+    color: var(--code-text);
+  }
+
+  .btn-transition {
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .tob-transition {
+    transition: all 200ms ease;
+  }
+
+  .text-transition {
+    transition: color 0.2s ease;
+  }
+
+  /* テスト記事用ユーティリティクラス */
+  .test-badge {
+    background-color: var(--test-badge-bg);
+    color: var(--test-badge-text);
+  }
+
+  .test-warning-bg {
+    background-color: var(--test-warning-bg);
+  }
+
+  .test-warning-text {
+    color: var(--test-warning-text);
+  }
+
+  .test-warning-border {
+    border-color: var(--test-warning-border);
+  }
+
+  .test-warning-box {
+    background-color: var(--test-warning-bg);
+    color: var(--test-warning-text);
+    border-color: var(--test-warning-border);
   }
 }

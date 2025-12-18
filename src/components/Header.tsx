@@ -16,7 +16,7 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-theme-3 hover:text-theme-1 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-theme-3 hover:text-theme-1 px-3 py-2 rounded-md text-sm font-medium text-transition"
               >
                 {item.name}
               </Link>

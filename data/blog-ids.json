@@ -1,0 +1,15 @@
+{
+  "nextId": 4,
+  "nextTestId": -5,
+  "mappings": {
+    "test-math-components-sample": -1,
+    "test-mdx-annotation-sample": -2,
+    "test-mdx-play-ground": -3,
+    "test-labelref": -4,
+    "atcoder-irohen-yellow": 1,
+    "omu-internship": 2,
+    "stern-brocot-tree": 3
+  },
+  "lastUpdated": "2025-11-01T02:14:11.563Z",
+  "note": "正の数: 通常記事, 負の数: テスト/実験用記事"
+}

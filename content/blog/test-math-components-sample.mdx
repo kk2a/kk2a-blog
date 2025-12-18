@@ -1,0 +1,169 @@
+---
+title: "MDX数学コンポーネントのサンプル"
+date: "2025-01-17"
+categories: ["数学", "技術"]
+tags: ["MDX", "React", "数学", "定理", "証明"]
+excerpt: "MDXで使用できる数学解説用コンポーネントのサンプルです。"
+---
+
+# MDX数学コンポーネントのサンプル
+
+この記事では、MDXで数学の解説を効果的に行うためのコンポーネントを紹介します<FootnoteRef id="math-components">定理、証明、定義などを美しく表示するためのコンポーネント群です</FootnoteRef>。
+
+## 基本的な数学コンポーネント
+
+### 定義
+
+<Definition title="連続性">
+関数 $f: \mathbb{R} \to \mathbb{R}$ が点 $a$ で連続であるとは、
+$$\lim_{x \to a} f(x) = f(a)$$
+が成り立つことである。
+</Definition>
+
+<Definition>
+数列 $\{a_n\}$ が収束するとは、ある実数 $L$ に対して
+$$\lim_{n \to \infty} a_n = L$$
+が成り立つことである。
+</Definition>
+
+### 定理と証明
+
+<Theorem title="中間値定理">
+$f$ を閉区間 $[a,b]$ で連続な関数とし、$f(a) \neq f(b)$ とする。
+このとき、$f(a)$ と $f(b)$ の間のあらゆる値 $k$ に対して、
+$f(c) = k$ となる $c \in [a,b]$ が存在する。
+</Theorem>
+
+<Proof>
+$f(a) < k < f(b)$ の場合を考える（$f(a) > f(b)$ の場合も同様）。
+
+集合 $S = \{x \in [a,b] : f(x) \leq k\}$ を考える。
+$S$ は空でなく上に有界なので、上限 $c = \sup S$ が存在する。
+
+$f$ の連続性により、$f(c) = k$ であることが示される。
+</Proof>
+
+### 命題と補題
+
+<Proposition title="三角不等式">
+任意の実数 $x, y$ に対して、
+$$|x + y| \leq |x| + |y|$$
+が成り立つ。
+</Proposition>
+
+<Lemma>
+$x > 0$ のとき、$x + \frac{1}{x} \geq 2$ である。
+</Lemma>
+
+<Proof>
+相加相乗平均の不等式により、
+$$
+x + \frac1x \geq 2\sqrt{x \cdot \frac1x} = 2.
+$$
+
+
+</Proof>
+
+### 系
+
+<Corollary>
+上記の補題より、$x > 0$ のとき $x^2 + 1 \geq 2x$ である。
+</Corollary>
+
+## 例と演習問題
+
+### 例
+
+<Example title="極限の計算">
+次の極限を求めよ：
+$$\lim_{x \to 0} \frac{\sin x}{x}$$
+</Example>
+
+<Solution>
+ロピタルの定理を適用すると、
+$$\lim_{x \to 0} \frac{\sin x}{x} = \lim_{x \to 0} \frac{\cos x}{1} = 1$$
+</Solution>
+
+<Example>
+関数 $f(x) = x^2$ は $x = 1$ で連続であることを示せ。
+</Example>
+
+<Solution>
+$\lim_{x \to 1} f(x) = \lim_{x \to 1} x^2 = 1^2 = 1 = f(1)$
+
+したがって、$f$ は $x = 1$ で連続である。
+</Solution>
+
+### 演習問題
+
+<Problem title="収束の証明">
+数列 $a_n = \frac{1}{n}$ が 0 に収束することを $\varepsilon$-$N$ 論法で証明せよ。
+</Problem>
+
+<Problem>
+関数 $f(x) = |x|$ が $x = 0$ で連続であることを示せ。
+</Problem>
+
+## 注意と補足
+
+<Remark title="重要な注意">
+定理の仮定を満たさない場合、結論が成り立たないことがある。
+例えば、中間値定理では関数の連続性が必要不可欠である。
+</Remark>
+
+<Remark>
+数学的帰納法を使う際は、基底ステップと帰納ステップの両方を確認することを忘れずに。
+</Remark>
+
+## 使い方
+
+### 基本的な使用方法
+
+```mdx
+<Definition title="タイトル（省略可）">
+定義の内容
+</Definition>
+
+<Theorem title="定理名（省略可）">
+定理の内容
+</Theorem>
+
+<Proof>
+証明の内容
+</Proof>
+```
+
+### 利用可能なコンポーネント
+
+- **Definition**: 定義（番号付き）
+- **Theorem**: 定理（番号付き）
+- **Proposition**: 命題（番号付き）
+- **Lemma**: 補題（番号付き）
+- **Corollary**: 系（番号付き）
+- **Example**: 例（番号付き）
+- **Problem**: 問題（番号付き）
+- **Proof**: 証明（番号なし）
+- **Solution**: 解答（番号なし）
+- **Remark**: 注意（番号なし）
+
+各コンポーネントは自動的に番号が振られ、カラーコーディングされています。
+
+## ラベルと参照の例
+
+以下は、コンポーネントに `id` を付けて本文中から参照する例です。例えば、定理に `id="thm:intermediate"` を付けると、本文中で `<LabelRef id="thm:intermediate" />` のように書いて参照できます。レンダリング時には「定理 1」のように表示され、クリックすると該当箇所へジャンプします。
+
+<Theorem id="thm:intermediate" title="中間値定理（ID付き）">
+f を閉区間 $[a,b]$ で連続な関数とし、$f(a) \neq f(b)$ とする。このとき、$f(a)$ と $f(b)$ の間のあらゆる値 $k$ に対して、$f(c) = k$ となる $c \in [a,b]$ が存在する。
+</Theorem>
+
+次に示す定義にも `id` を付け、本文中で参照しています：<LabelRef id="def:continuity" /> を参照してください。
+
+<Definition id="def:continuity" title="連続性（ID付き）">
+関数 $f: \mathbb{R} \to \mathbb{R}$ が点 $a$ で連続であるとは、
+$$\lim_{x \to a} f(x) = f(a)$$
+が成り立つことである。
+</Definition>
+
+上の定理を本文中で参照する例：<LabelRef id="thm:intermediate" />。
+
+<FootnoteList />

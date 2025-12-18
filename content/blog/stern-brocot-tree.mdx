@@ -1,0 +1,474 @@
+---
+title: "Stern-Brocot tree"
+date: "2025-10-10"
+excerpt: "Stern-Brocot treeについての解説"
+categories: ["数学", "データ構造"]
+tags: ["数学", "データ構造", "Stern-Brocot tree"]
+---
+
+## はじめに
+　この記事では，Stern-Brocot treeについて解説します．前提知識は以下を参照してください．
+
+- $\mathrm{mod}$ 計算ができる．
+- 剰余の原理を知っている．
+- 行列の基本的な演算，逆行列を求めることができる．（まったく知らない状態でも問題ないと思います．）
+- $O$記法を知っている．
+
+## 記法
+
+- $\mathbf{Z}$：整数全体の集合
+- $\mathbf{Q}$：有理数全体の集合
+- $x \mid y$：$x$ は $y$ を割り切る．つまり，ある整数 $k$ が存在して，$y = kx$ となることを表す．
+- $\gcd(x, y)$：$x, y$ の最大公約数を表す．
+
+## Stern-Brocot Tree
+
+<Definition id="def:stern-brocot-tree">
+　Stern-Brocot treeとは，無限頂点の完全二分木で，各頂点は正の有理数に対応する．この木は以下のように構成される．
+
+- 各ノードは，四つの非負整数を持つ，これを $(a, b, c, d)$ と表す．
+- 根ノードは $(0, 1, 1, 0)$ である．
+- ノード $(a, b, c, d)$ の左の子は $(a, b, a+c, b+d)$ であり，右の子は $(a+c, b+d, c, d)$ である．
+- ノード $(a, b, c, d)$ に対応する有理数は $(a+c)/(b+d)$ である．
+
+</Definition>
+
+(参考<FootnoteRef id="fn:def-sbt">Stern-Brocot treeの定義はいろいろあるようでした（[Wikipedia](https://en.wikipedia.org/w/index.php?title=Stern%E2%80%93Brocot_tree&oldid=1300138230), [miscalcさんのブログ](https://miscalc.hatenablog.com/entry/2023/12/22/213007)）
+．最終的に，miscalcさんの定義をもとに書くことにしました．</FootnoteRef>)
+
+<Definition id="def:continued-fraction">
+
+　正則連分数とは，整数 $a_0$, 正整数 $a_1, a_2, \dots, a_n \ (n \ge 0)$ に対して，次のように定義される有理数のことである：
+
+$$
+[a_0; a_1, a_2, \dots, a_n] \coloneqq a_0 + \dfrac{1}{a_1 + \dfrac{1}{a_2 + \dfrac{1}{\dots + \dfrac{1}{a_n}}}}.
+$$
+
+</Definition>
+
+(参考<FootnoteRef id="fn:def-continued-fraction">[Wikipedia](https://en.wikipedia.org/w/index.php?title=Stern%E2%80%93Brocot_tree&oldid=1300138230)を記法で参考にしました．</FootnoteRef>)
+
+<Lemma id="lem:one-to-one-correspondence-of-continued-frac">
+　任意の $x \notin \mathbf{Q}\setminus\mathbf{Z}$ は，$a_n \ne 1$をみたす正則連分数がただ一つ存在して， $x = [a_0; a_1, a_2, \dots, a_n]$ と表せる．また，$x = p/q$ （ただし，$q > 0$ とする．）と既約分数で表した時，$n \in O(\log q)$ である．
+</Lemma>
+
+<Proof>
+
+　まず，$x$ が正則連分数で表せることを示す．これは，次のようにして得られる：
+
+$$
+\begin{align*}
+  x &= a_0 + \dfrac{r_0}{q} && (0 \le r_0 < q) \\
+    &= a_0 + \dfrac{1}{q/r_0} && \\
+    &= a_0 + \dfrac{1}{a_1 + r_1/r_0} && (0 \le r_1 < r_0) \\
+    &= a_0 + \dfrac{1}{a_1 + \dfrac{1}{r_0/r_1}} && \\
+    &= a_0 + \dfrac{1}{a_1 + \dfrac{1}{a_2 + r_2/r_1}} && (0 \le r_2 < r_1) \\
+    &\vdots && \\
+    &= a_0 + \dfrac{1}{a_1 + \dfrac{1}{a_2 + \dfrac{1}{\dots + \dfrac{1}{a_n + r_n/r_{n-1}}}}} && (0 \le r_n < r_{n-1}) \\
+    &= a_0 + \dfrac{1}{a_1 + \dfrac{1}{a_2 + \dfrac{1}{\dots + \dfrac{1}{a_n}}}} && (r_n = 0)
+\end{align*}
+$$
+
+ここで，$r_i$ は整数である．次に，$n \in O(\log q)$ を示す．$r_{i+2} < r_{i}/2 \ (i \ge 0)$ を示す．定義から，$r_{i+1} < r_i$ である．$r_{i+1} > r_i/2$ なら，
+
+$$
+r_{i+2} = r_i - r_{i+1} < r_i/2.
+$$
+
+$r_{i+1} \le r_i/2$ なら，
+
+$$
+r_{i+2} < r_{i+1} \le r_i/2.
+$$
+
+よって，
+$$
+1 = r_{n-1} < \max(r_0, r_1) \cdot 2^{-\lfloor (n-1)/2 \rfloor} < q \cdot 2^{-(n-3)/2} \implies n < 2 \log_2 q + 3. 
+$$
+
+最後に，一意性を示す．つまり，$x = [a_0; a_1, a_2, \dots, a_n] = [b_0; b_1, b_2, \dots, b_m] \ (a_n, b_m > 1)$ ならば，数列 $\{a_i\}, \{b_i\}$ が等しいということを示す．数列 $\{a_i\}, \{b_i\}$ の一方がもう一方の接頭辞になっている場合は，明らかに異なる．$a_i = b_i \ (i < j),\ a_j \ne b_j$ なる $j$ がとれたとする．$a_n > 1$ であるから，
+
+$$
+a_j \le [a_j; a_{j+1}, \dots, a_n] < a_j + 1.
+$$
+
+同様に，$b_j \le [b_j; b_{j+1}, \dots, b_m] < b_j + 1$ である．よって，$j$ 以降の部分は等しく成りえないので，$j$ は存在しえない．よって，数列 $\{a_i\}, \{b_i\}$ は等しい．
+
+</Proof>
+
+<Remark>
+
+　$x \in \mathbf{Z}$ なら，$x = [x] = [x - 1; 1]$ と表せる．実際に，$n = 1$ なら，$1/a_1$ が整数であることから，$a_1 = 1$ である．また，$n > 1$ なら，
+$$
+a_0 < [a_0; a_1, \dots, a_n] < a_0 + 1/a_1 \le a_0 + 1
+$$
+なので，非整数にしかならない．$x \in \mathbf{Q}\setminus\mathbf{Z}$ のときは，$[a_0; a_1, \dots, a_{n-1}, 1] = [a_0; a_1, \dots, a_{n-1} + 1]$ を用いれば，$a_n = 1$ のときも一意に表せる．
+</Remark>
+
+<Lemma id="lem:gcd-fact">
+　任意の $x, y \in \mathbf{Z} \ (y \ne 0)$ に対して，$\gcd(x, y) = \gcd(x + ky, y)$ $(k \in \mathbf{Z})$ である．
+</Lemma>
+
+<Proof>
+　$\gcd(x, y) \mid \gcd(x + ky, y)$ は明らか．$g = \gcd(x + ky, y)$ とおく．$x$ を $g$ で割ったあまりを $r$ とおくと，$x + ky$ を $g$ で割ったあまりは $r$ であるから，$r = 0$．とくに，${g = \gcd(x + ky, y) \mid \gcd(x, y)}$ である．
+</Proof>
+
+
+<Lemma id="lem:matrix-representation-of-continued-frac">
+
+$$
+\begin{pmatrix}
+  x \\ y
+\end{pmatrix}
+=
+\begin{pmatrix}
+  a_0 & 1 \\ 1 & 0
+\end{pmatrix}
+\begin{pmatrix}
+  a_1 & 1 \\ 1 & 0
+\end{pmatrix}
+\cdots
+\begin{pmatrix}
+  a_n & 1 \\ 1 & 0
+\end{pmatrix}
+\begin{pmatrix}
+  1 \\ 0
+\end{pmatrix}
+$$
+
+とすると，$x/y = [a_0; a_1, a_2, \dots, a_n]$ で， $x, y$ は互いに素である．
+
+</Lemma>
+
+<Proof>
+
+　$p/q$ と $r$ の和は，一つの分数で表せるが，これは行列の積で表現できる：
+
+$$
+\begin{pmatrix}
+  1 & r \\ 0 & 1
+\end{pmatrix}
+\begin{pmatrix}
+  p \\ q
+\end{pmatrix}
+=
+\begin{pmatrix}
+  p + rq \\ q
+\end{pmatrix}
+.
+$$
+
+また，$p/q$ の逆数も行列の積で表現できる：
+$$
+\begin{pmatrix}
+  0 & 1 \\ 1 & 0
+\end{pmatrix}
+\begin{pmatrix}
+  p \\ q
+\end{pmatrix}
+=
+\begin{pmatrix}
+  q \\ p
+\end{pmatrix}.
+$$
+
+これらを組み合わせると，正則連分数の定義から，次が成り立つ：
+
+$$
+
+\begin{align*}
+  \begin{pmatrix}
+    x \\ y
+  \end{pmatrix}
+  &=
+  \begin{pmatrix}
+    1 & a_0 \\ 0 & 1
+  \end{pmatrix}
+  \begin{pmatrix}
+    0 & 1 \\ 1 & 0
+  \end{pmatrix}
+  \cdots
+  \begin{pmatrix}
+    1 & a_n \\ 0 & 1
+  \end{pmatrix}
+  \begin{pmatrix}
+    0 \\ 1
+  \end{pmatrix} \\
+  &=
+  \begin{pmatrix}
+    1 & a_0 \\ 0 & 1
+  \end{pmatrix}
+  \begin{pmatrix}
+    0 & 1 \\ 1 & 0
+  \end{pmatrix}
+  \cdots
+  \begin{pmatrix}
+    1 & a_n \\ 0 & 1
+  \end{pmatrix}
+  \begin{pmatrix}
+    0 & 1 \\ 1 & 0
+  \end{pmatrix}
+  \begin{pmatrix}
+    1 \\ 0
+  \end{pmatrix} \\
+  &=
+  \begin{pmatrix}
+    a_0 & 1 \\ 1 & 0
+  \end{pmatrix}
+  \begin{pmatrix}
+    a_1 & 1 \\ 1 & 0
+  \end{pmatrix}
+  \cdots
+  \begin{pmatrix}
+    a_n & 1 \\ 1 & 0
+  \end{pmatrix}
+  \begin{pmatrix}
+    1 \\ 0
+  \end{pmatrix}.
+\end{align*}
+
+$$
+
+また，
+
+$$
+1 = \gcd(1, 0) = \gcd(a_n, 1) = \gcd(a_{n-1}a_n + 1, a_n) = \dots = \gcd(x, y).
+$$
+
+</Proof>
+
+<Lemma id="lem:matrix-sum">
+
+$$
+\begin{pmatrix}
+  x & 1 \\ 1 & 0
+\end{pmatrix}
+\begin{pmatrix}
+  y & 1 \\ 1 & 0
+\end{pmatrix}
+\begin{pmatrix}
+  1 \\ 0
+\end{pmatrix}
+=
+\begin{pmatrix}
+  x & 1 \\ 1 & 0
+\end{pmatrix}
+\begin{pmatrix}
+  1 \\ 0
+\end{pmatrix}
++
+\begin{pmatrix}
+  x & 1 \\ 1 & 0
+\end{pmatrix}
+\begin{pmatrix}
+  y - 1 & 1 \\ 1 & 0
+\end{pmatrix}
+\begin{pmatrix}
+  1 \\ 0
+\end{pmatrix}.
+$$
+
+</Lemma>
+<Proof>
+　明らか．
+</Proof>
+
+<Theorem id="thm:relation-between-sbt-and-continued-frac">
+　Stern-Brocot treeのノードが根から，右に$a_0$回，左に$a_1$回，右に$a_2$回，$\ldots$ ，左または右に$a_n$回移動してたどり着くとき，そのノードに対応する有理数は $[a_0; a_1, a_2, \dots, a_n + 1]$ である．ただし，$a_0 \ge 0, a_i > 0 \ (i > 0)$ とする．
+</Theorem>
+
+<Proof>
+
+　証明は，深さの帰納法で行う．根は $[0; 1] = 1/1$ である．ノード $(a, b, c, d)$ を考える．$(a, b) = (0, 1)$ または，$(c, d) = (1, 0)$ のときについては，それぞれ $[0; k + 1] = 1/(k+1)$，$[k; 1] = k+1$ であることから容易に示せる．そうでないときを考える．まず，ノード $(a, b, c, d)$ が左の子であるときを考える．以下を示す：
+
+$$
+\dfrac{a}{b} = [a_0; a_1, a_2, \dots, a_{n-1}]
+$$
+
+ただし，ノード $(a, b, c, d)$ が根から，右に  $a_0$ 回，左に $a_1$ 回，右に $a_2$ 回，$\ldots$ ，右に $a_n$ 回移動してたどり着くとする．ノード $(a, b, c, d)$ から親をたどっていき，初めて右の子になったとき（そのようなノードが存在する），そのノードの親に対応する有理数は $a/b$ である．このことと，帰納法の仮定を合わせれば示せる．同様に，
+
+$$
+\dfrac{c}{d} = [a_0; a_1, a_2, \dots, a_{n-1}, a_n]
+$$
+
+も言える．<LabelRef id="lem:matrix-representation-of-continued-frac"/>，<LabelRef id="lem:matrix-sum" /> より，
+
+$$
+
+\begin{align*}
+  &\begin{pmatrix}
+    a_0 & 1 \\ 1 & 0
+  \end{pmatrix}
+  \begin{pmatrix}
+    a_1 & 1 \\ 1 & 0
+  \end{pmatrix}
+  \cdots
+  \begin{pmatrix}
+    a_n + 1 & 1 \\ 1 & 0
+  \end{pmatrix}
+  \begin{pmatrix}
+    1 \\ 0
+  \end{pmatrix}
+  \\ &=
+  \begin{pmatrix}
+    a_0 & 1 \\ 1 & 0
+  \end{pmatrix}
+  \begin{pmatrix}
+    a_1 & 1 \\ 1 & 0
+  \end{pmatrix}
+  \cdots
+  \left[
+    \begin{pmatrix}
+      a_{n-1} & 1 \\ 1 & 0
+    \end{pmatrix}
+    +
+    \begin{pmatrix}
+      a_{n-1} & 1 \\ 1 & 0
+    \end{pmatrix}
+    \begin{pmatrix}
+      a_n & 1 \\ 1 & 0
+    \end{pmatrix}
+  \right]
+  \begin{pmatrix}
+    1 \\ 0
+  \end{pmatrix} \\
+  &=
+  \begin{pmatrix}
+    a \\ b
+  \end{pmatrix}
+  +
+  \begin{pmatrix}
+    c \\ d
+  \end{pmatrix} \\
+  &=
+  \begin{pmatrix}
+    a + c \\ b + d
+  \end{pmatrix}
+  .
+\end{align*}
+
+$$
+
+ノード $(a, b, c, d)$ が右の子であるときも同様である．
+
+</Proof>
+
+## 諸性質
+
+<Corollary id="cor:all-positive-rationals-are-in-sbt">
+　Stern-Brocot treeの各ノードに対応する有理数は，正の有理数であり，逆に，任意の正の有理数はStern-Brocot treeのたった一つのあるノードに対応する．
+</Corollary>
+
+<Proof>
+　<LabelRef id="lem:one-to-one-correspondence-of-continued-frac"/>，<LabelRef id="thm:relation-between-sbt-and-continued-frac"/> より明らか．
+</Proof>
+
+<Proposition id="prop:child-properties-sbt">
+　Stern-Brocot treeの各親子について，対応する有理数は $(\text{左の子}) < (\text{親}) < (\text{右の子})$ となる．
+</Proposition>
+<Proof>
+　これは，<LabelRef id="thm:relation-between-sbt-and-continued-frac"/> より明らかであるが，別の方法で示す．便宜上，$1/0=\infty$ とする．まず，各ノード $(a, b, c, d)$ について，以下が成り立つことを示す：
+
+$$
+\dfrac ab < \dfrac cd.
+$$
+
+帰納法で示す．根では確かに成り立っている．ノード $(a, b, c, d)$ について成り立つとき，その左の子 $(a, b, a+c, b+d)$ と右の子 $(a+c, b+d, c, d)$ についても成り立つことを示す．これは，加比の理<FootnoteRef id="fn:property-of-mediant">加比の理とは，$a/b < c/d$ ならば，$a/b < (a+c)/(b+d) < c/d$ が成り立つことをいう．</FootnoteRef>により，容易に示せる：
+
+$$
+\dfrac ab < \dfrac{a+c}{b+d} < \dfrac cd.
+$$
+
+あとは，明らかである．
+
+</Proof>
+
+<Corollary id="cor:open-intervals-of-sbt">
+　Stern-Brocot treeの各ノード $(a, b, c, d)$ について，自分自身とその子孫に対応する有理数全体は，$(a/b, c/d)$ の開区間になる．
+</Corollary>
+<Proof>
+　帰納法で示す．根では <LabelRef id="cor:all-positive-rationals-are-in-sbt"/> より成り立つ．ノード $(a, b, c, d)$ について成り立つとする．左の子 $(a, b, a+c, b+d)$ 自身とその子孫に対応する有理数全体を $S_L$，右の子 $(a+c, b+d, c, d)$ 自身とその子孫に対応する有理数全体を $S_R$ とおく．帰納法の仮定より，
+
+$$
+\begin{align*}
+  S_L &\subset \left(\dfrac ab, \dfrac{a+c}{b+d}\right), \\
+  S_R &\subset \left(\dfrac{a+c}{b+d}, \dfrac cd\right) ,\\
+  S_L \cup \left\{\dfrac{a+c}{b+d}\right\} \cup S_R &= \left(\dfrac ab, \dfrac cd\right).
+\end{align*}
+
+$$
+
+よって，$S_L = (a/b, (a+c)/(b+d)), S_R = ((a+c)/(b+d), c/d)$ である．
+
+</Proof>
+
+## 応用
+
+　この章では，Library Checkerの問題<FootnoteRef id="fn:library-checker-sbt">https://judge.yosupo.jp/problem/stern_brocot_tree</FootnoteRef>をもとに，どのようにStern-Brocot treeを実装するかなどを解説します．
+
+<Problem id="prob:sbt-encode-path" title="Encode Path">
+　$1/1$ から $a/b$ までのパスを，`L` と `R` の文字列で表現せよ．ただし，連長圧縮すること．
+</Problem>
+
+<LabelRef id="lem:one-to-one-correspondence-of-continued-frac"/> の証明と同じことをすればよく，連長圧縮も同時にできるので，$O(\log b)$ 時間で解ける．実装では，最後の部分だけ気を付けないといけない．Library Checkerの問題では，$a/b$ は既約分数で与えられるが，既約じゃなくても $r_{n-1}$ が $\mathrm{gcd}$ になるだけで問題ないです．
+
+<Problem id="prob:sbt-decode-path" title="Decode Path">
+　`L` と `R` の文字列で表現された $1/1$ から $a/b$ までのパスが与えられる．$a/b$ を求めよ．
+</Problem>
+
+これは，定義をもとに計算すれば良いです．
+
+<Problem id="prob:sbt-lca" title="LCA">
+　$a/b$ と $c/d$ のLCAを求めよ．
+</Problem>
+
+Encode Pathをして，共通の接頭辞を求めれば良いです．
+
+<Problem id="prob:sbt-ancestor" title="Ancestor">
+　$a/b$ の祖先であって，深さが $k$ のものを求めよ．存在しなければ $-1$ を出力せよ．
+</Problem>
+
+Encode Pathをして，$k$ 文字目までを取り出せば良いです．あるいは，$l$ だけ親をたどるのように読み替えて，Encode Pathの文字列を後ろから $l$ 文字消せば良いです．
+
+<Problem id="prob:sbt-range" title="Range">
+　頂点 $a/b$ とその子孫に対応する有理数全体は，開区間なのでそれを求めよ．
+</Problem>
+
+<LabelRef id="cor:open-intervals-of-sbt"/> です．
+
+　Library Checkerの問題を解くうえでは，根までのパスを連長圧縮したものと，対応する整数四組 $(a, b, c, d)$ を持てばよく，<LabelRef id="prob:sbt-ancestor"/> を $k$ 戻るで実装するときは，深さをもっておくと計算量が良くなります．
+
+　Stern-Brocot treeに関する問題は他にもあります<FootnoteRef id="fn:library-checker-rational-approximation">https://judge.yosupo.jp/problem/rational_approximation</FootnoteRef><FootnoteRef id="fn:library-checker-min-of-mod-of-linear">https://judge.yosupo.jp/problem/min_of_mod_of_linear</FootnoteRef>．
+
+<Problem id="prob:rational-approximation" title="Rational Approximation">
+　分母分子が $N$ 以下の既約分数の集合を $S$ とする（便宜上，$0/1, 1/0 \in S$ とする．）．$S$ の元であって，$x/y$ 以下で最大のものと，$x/y$ 以上で最小のものを求めよ．
+</Problem>
+
+この問題は，一般化して考えたほうが個人的には考えやすいと思っています<FootnoteRef id="fn:generalized-problem">一般化の方法はたくさんあるようで，正の有理数の近似ではなく，正の実数の近似を考えるとか，$N$ 以下の制約を分母のみに課すなど（分子でもできると思っていますが，得られる有理数があまり面白くなさそうだなと思っています．）．[maspyさんのブログ](https://maspypy.com/library-checker-rational-approximation), 
+[miscalcさんのブログ](https://miscalc.hatenablog.com/entry/2023/12/22/213007), [えびちゃんさんのブログ](https://rsk0315.hatenablog.com/entry/2023/04/17/022705)などを参考にしました．</FootnoteRef>．本質は変わらないので，ここでは一般化については踏み込まないことにします．さて，Stern-Brocot Treeには二つの意味で単調性があります．以下のことです：
+
+- <LabelRef id="prop:child-properties-sbt"/>
+- 各ノード $v$ について，根から $v$ までのパスに順番に現れる有理数の分母（分子）は減少しない（<LabelRef id="def:stern-brocot-tree"/> より）．
+
+この単調性から次のようにすれば問題を解くことができます：
+
+1. $l = 0/1$, $r = 1/0$，ノード $v$ は根とする．また，$v$ に対応する有理数を常に，$a/b$ と書く．
+3. 右に進んだあと，$\max\{a, b\} \le N$ なら右に進み，$l$ を元の $a/b$ に置き換える．そうでないなら，7.にいく．
+4. $x/y < a/b$ なら，5.にいく．そうでないなら，4.にいく．
+5. 左に進んだあと，$\max\{a, b\} \le N$ なら左に進み，$r$ を元の $a/b$ に置き換える．そうでないなら，7.にいく．
+6. $a/b \le x/y$ なら，3.にいく．そうでないなら，5.にいく．
+7. $l = x/y$ なら，$r = l$ として，答えは，$l, r$ です．
+
+2.と3.（4.と5.）のステップは指数探索をすることで効率化することができます<FootnoteRef id="fn:rational-approximation-exponential-search">[abc294の解説](https://atcoder.jp/contests/abc294/editorial/6017)に詳しく載っています．</FootnoteRef>．
+
+あとでもう少し詳しく書きます．
+
+<Problem id="prob:min-of-mod-of-linear" title="Min of Mod of Linear">
+　$\min\{(Ax+B)\mod M : 0 \le x < N\}$ を求めよ．
+</Problem>
+
+執筆中．[maspyさんのブログ](https://maspypy.com/library-checker-min-of-mod-of-linear)で触れられていない筆者が非自明だと思った事実を書く予定．
+
+{/* 計算量解析が https://atcoder.jp/contests/abc294/editorial/6017 */}
+
+<FootnoteList/>

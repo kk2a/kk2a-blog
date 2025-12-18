@@ -6,6 +6,9 @@ import rehypeKatex from "rehype-katex";
 const nextConfig: NextConfig = {
   output: "export",
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  images: {
+    unoptimized: true, // Disable Next.js image optimization
+  },
 };
 
 const withMDX = createMDX({

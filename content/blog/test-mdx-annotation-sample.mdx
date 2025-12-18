@@ -1,0 +1,92 @@
+---
+title: "MDX脚注機能：注釈と参考文献の統合"
+date: "2025-01-17"
+categories: ["技術"]
+tags: ["MDX", "React", "脚注", "参考文献"]
+excerpt: "MDXで脚注を使って注釈と参考文献を効果的に管理する方法を紹介します。"
+---
+
+# MDX脚注機能：注釈と参考文献の統合
+
+この記事では、MDXの脚注機能を使って注釈と参考文献を統合的に管理する方法を紹介します<FootnoteRef id="intro">この脚注システムでは、補足説明から参考文献まで一元的に管理できます</FootnoteRef>。
+
+## 1. 脚注（FootnoteRef）
+
+通常のテキスト内で<FootnoteRef id="footnote1">これは最初の脚注です。番号が自動で振られます。</FootnoteRef>
+
+複数の脚注も<FootnoteRef id="footnote2">これは二番目の脚注です。</FootnoteRef><FootnoteRef id="footnote3">aiueo</FootnoteRef>簡単に追加できます。
+
+## 2. 脚注の活用パターン
+
+### 補足説明としての脚注
+MDX<FootnoteRef id="mdx-definition">Markdown + JSXを組み合わせた記法で、Reactコンポーネントを直接埋め込むことができる技術</FootnoteRef>は現代的なドキュメント作成に適しています。
+
+### 参考文献を含む脚注
+この手法の有効性は研究で実証されています<FootnoteRef id="research-paper"><ReferenceRef id="smith2024"/></FootnoteRef>。
+
+## 3. 参考文献機能の使用（LaTeX風）
+
+独立した参考文献システムも利用できます。研究<ReferenceRef id="smith2024"/>や技術書<ReferenceRef id="johnson2023"/>を参照する場合に便利です。
+
+複数の参考文献も同時に引用できます<ReferenceRef id="smith2024"/><ReferenceRef id="johnson2023"/>。同じ文献を再度引用<ReferenceRef id="smith2024"/>することも可能です。
+
+## 使い方とベストプラクティス
+
+### 基本的な脚注の作成
+```mdx
+テキスト<FootnoteRef id="unique-id">補足説明や注釈の内容</FootnoteRef>
+```
+
+### LaTeX風の参考文献システム
+```mdx
+{/* 1. 文献情報を定義 */}
+<Reference 
+  id="example"
+  authors="Smith, J. & Johnson, A."
+  year="2024"
+  title="Advanced MDX Techniques"
+  journal="Journal of Web Development"
+  volume="12"
+  issue="3"
+  pages="45-67"
+  doi="10.1234/jwd.2024.12.3.45"
+/>
+
+{/* 2. 本文で引用 */}
+研究<ReferenceRef id="example"/>によると...
+
+{/* 3. 参考文献リストを表示 */}
+<ReferenceList />
+```
+
+### 注意点
+- `<Reference>`で文献情報を構造化して定義
+- `<ReferenceRef id="..."/>`で引用（children不要）
+- 引用順序で参考文献リストが自動ソート
+- 脚注は補足説明、参考文献は文献引用に使い分け
+
+<FootnoteList />
+
+<ReferenceList />
+
+{/* 構造化された参考文献の例 */}
+<Reference 
+  id="smith2024"
+  authors="Smith, J., Brown, M., & Davis, K."
+  year="2024"
+  title="Advanced MDX Techniques for Modern Web Development"
+  journal="Journal of Web Development"
+  volume="12"
+  issue="3"
+  pages="45-67"
+  doi="10.1234/jwd.2024.12.3.45"
+/>
+
+<Reference 
+  id="johnson2023"
+  authors="Johnson, A."
+  year="2023"
+  title="Component-Driven Development: A Practical Guide"
+  publisher="O'Reilly Media"
+  url="https://example.com/component-driven-development"
+/>

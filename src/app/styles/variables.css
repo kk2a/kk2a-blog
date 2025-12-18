@@ -7,6 +7,10 @@
   --text-3: #555; /* 補助テキスト */
   --text-url-1: #155dfc; /* リンク色(通常) */
   --text-url-2: #1447e6; /* リンク色(ホバー) */
+  --text-url-visited: #7c3aed; /* リンク色(訪問済み) */
+  --text-url-visited-hover: #5b21b6; /* リンク色(訪問済み+ホバー) */
+  /* 強調（strong）用の色：リンクに似ているが微妙に異なる */
+  --strong-color: #0f4fe8; /* 少し落ち着いた青 */
   --bg-scroll-bar: #d0d0d0; /* スクロールバーの背景色 */
 
   /* テーブル用CSS変数 */
@@ -25,16 +29,33 @@
   --table-of-contents-text-2: #1447e6;
   --table-of-contents-bg-1: #1c39fe11;
 
-  --category-bg-1: oklch(77.8% 0.114 255);
-  --category-bg-2: oklch(86.1% 0.078 239);
-  --category-text-1: oklch(37.3% 0.058 254.3);
+  --category-bg-1: oklch(88.8% 0.1 255);
+  --category-bg-2: oklch(92.1% 0.078 239);
+  --category-text-1: #111;
 
-  --tag-bg-1: oklch(80.3% 0.034 260.2);
-  --tag-bg-2: oklch(90.6% 0.037 257.3);
-  --tag-text-1: oklch(20.2% 0.011 261.8);
+  --tag-bg-1: oklch(86.3% 0.02 260.2);
+  --tag-bg-2: oklch(90.6% 0.02 257.3);
+  --tag-text-1: #111;
+
+  --card-text-hover: oklch(65% 0.245 264.4);
 
   --code-bg: #1f1f1f;
   --code-text: #f8f8f2;
+
+  /* テスト記事用CSS変数 */
+  --test-badge-bg: #fef3c7;
+  --test-badge-text: #92400e;
+  --test-badge-border: #f59e0b;
+  --test-warning-bg: #fef3c7;
+  --test-warning-text: #92400e;
+  --test-warning-border: #f59e0b;
+
+  /* ラベル参照ツールチップ用CSS変数 */
+  --tooltip-bg: #ffffff;
+  --tooltip-border: #fff;
+  --tooltip-header-text: #374151;
+  --tooltip-content-text: #4b5563;
+  --tooltip-shadow: rgba(0, 0, 0, 0.1);
 }
 
 /* ダークテーマ */
@@ -46,6 +67,9 @@
   --text-3: #99a1af; /* 補助テキスト */
   --text-url-1: #51a2ff;
   --text-url-2: #8ec5ff;
+  --text-url-visited: #c084fc; /* リンク色(訪問済み) */
+  --text-url-visited-hover: #ddd6fe; /* リンク色(訪問済み+ホバー) */
+  --strong-color: #58a1ff; /* ダークモード向けの強調色 */
   --bg-scroll-bar: #4b5563; /* スクロールバーの背景色 */
 
   /* ダークテーマのテーブル用CSS変数 */
@@ -72,6 +96,23 @@
   --tag-bg-2: #475569;
   --tag-text-1: #d1d5dc;
 
+  --card-text-hover: oklch(70.7% 0.165 254.624);
+
   --code-bg: #1f1f1f;
   --code-text: #f8f8f2;
+
+  /* ダークテーマのテスト記事用CSS変数 */
+  --test-badge-bg: #92400e;
+  --test-badge-text: #fef3c7;
+  --test-badge-border: #f59e0b;
+  --test-warning-bg: rgba(146, 64, 14, 0.2);
+  --test-warning-text: #fcd34d;
+  --test-warning-border: #f59e0b;
+
+  /* ダークテーマのラベル参照ツールチップ用CSS変数 */
+  --tooltip-bg: #1f2937;
+  --tooltip-border: #1f2937;
+  --tooltip-header-text: #f8fafc;
+  --tooltip-content-text: #e2e8f0;
+  --tooltip-shadow: rgba(0, 0, 0, 0.3);
 }

@@ -26,24 +26,77 @@ export function TableOfContents({
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
-    const headings = getHeadingsFromMain(headingSelector);
-    const tocItemsFromDom: TocItem[] = [];
+    const updateToc = () => {
+      const headings = getHeadingsFromMain(headingSelector);
+      const tocItemsFromDom: TocItem[] = [];
 
-    headings.forEach((heading, index) => {
-      const level = parseInt(heading.tagName.charAt(1));
-      const text = heading.textContent || "";
-      let id = heading.id;
+      headings.forEach((heading, index) => {
+        const level = parseInt(heading.tagName.charAt(1)) || 2; // デフォルトレベル2（注釈・参考文献用）
+        const text = heading.textContent || "";
+        let id = heading.id;
 
-      // IDが設定されていない場合、自動生成
-      if (!id) {
-        id = `heading-${index}`;
-        heading.id = id;
+        // IDが設定されていない場合、自動生成
+        if (!id) {
+          id = `heading-${index}`;
+          heading.id = id;
+        }
+
+        tocItemsFromDom.push({ id, text, level });
+      });
+
+      setToc(tocItemsFromDom);
+    };
+
+    // 初回実行
+    updateToc();
+
+    // MutationObserverでDOM変更を監視
+    const observer = new MutationObserver((mutations) => {
+      let shouldUpdate = false;
+
+      mutations.forEach((mutation) => {
+        if (mutation.type === "childList") {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              // 見出し要素や注釈・参考文献セクションが追加されたかチェック
+              const hasHeadings =
+                element.matches("h1, h2, h3, h4, h5, h6") ||
+                element.querySelector("h1, h2, h3, h4, h5, h6");
+              const hasFootnotes =
+                element.id === "footnotes" ||
+                element.querySelector("#footnotes");
+              const hasReferences =
+                element.id === "references" ||
+                element.querySelector("#references");
+
+              if (hasHeadings || hasFootnotes || hasReferences) {
+                shouldUpdate = true;
+              }
+            }
+          });
+        }
+      });
+
+      if (shouldUpdate) {
+        // 少し遅延してから更新（レンダリング完了を待つ）
+        setTimeout(updateToc, 100);
       }
-
-      tocItemsFromDom.push({ id, text, level });
     });
 
-    setToc(tocItemsFromDom);
+    // ドキュメント全体を監視
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    // フォールバック: 一定時間後に再チェック
+    const fallbackTimer = setTimeout(updateToc, 1000);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(fallbackTimer);
+    };
   }, [headingSelector]);
 
   useEffect(() => {
@@ -134,12 +187,12 @@ export function TableOfContents({
                   <button
                     onClick={() => scrollToHeading(id)}
                     className={`
-                      block w-full text-left text-sm transition-all duration-200 
+                      block w-full text-left text-sm tob-transition
                       hover:text-table-of-contents-2 rounded px-2 py-1
                       cursor-pointer border-l-2
                       ${
                         activeId === id
-                          ? "text-table-of-contents-1 font-medium border-blue-400 bg-table-of-contents-1"
+                          ? "text-table-of-contents-1 border-blue-400 bg-table-of-contents-1"
                           : "text-theme-3 border-transparent hover:border-gray-600"
                       }
                       ${level === 1 ? "ml-0" : ""}

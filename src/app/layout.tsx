@@ -29,13 +29,13 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     siteName: siteConfig.name,
     type: "website",
-    images: ["/favicon.ico"],
+    images: ["https://blog.kk2a.net/ogp-image.jpg"],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: siteConfig.title,
     description: siteConfig.description,
-    images: ["/favicon.ico"],
+    images: ["https://blog.kk2a.net/ogp-image.jpg"],
   },
   icons: {
     icon: "/favicon.ico",
@@ -50,7 +50,7 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 .custom-scrollbar`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 custom-scrollbar`}
       >
         <ThemeProvider>
           <Header />
