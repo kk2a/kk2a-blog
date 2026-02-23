@@ -56,6 +56,6 @@
     "wrangler": "^4.30.0"
   },
   "lint-staged": {
-    "content/blog/*.mdx": "npx tsx scripts/update-mdx-metadata.ts"
+    "content/**/*.mdx": "npx tsx scripts/update-mdx-metadata.ts"
   }
 }

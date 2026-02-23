@@ -33,12 +33,22 @@ export default async function PrivacyPolicyPage() {
               <MDXRemote source={pageData.content} components={mdxComponents} />
             </div>
 
+            {/* 最終更新日 */}
             {pageData.lastUpdated && (
-              <div className="mt-8 pt-4 border-t border-theme-border">
-                <p className="text-sm text-theme-2">
-                  最終更新:{" "}
-                  {new Date(pageData.lastUpdated).toLocaleDateString("ja-JP")}
-                </p>
+              <div className="mt-12 pt-6 border-t border-theme-border">
+                <div className="text-sm text-theme-3">
+                  <span className="mr-2">最終更新:</span>
+                  <time dateTime={pageData.lastUpdated}>
+                    {new Date(pageData.lastUpdated).toLocaleDateString(
+                      "ja-JP",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      },
+                    )}
+                  </time>
+                </div>
               </div>
             )}
           </div>

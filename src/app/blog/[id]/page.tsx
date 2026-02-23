@@ -199,7 +199,7 @@ export default async function BlogPostById({ params }: Props) {
         {post.lastUpdated && (
           <div className="mt-12 pt-6 border-t border-theme-border">
             <div className="text-sm text-theme-3">
-              <span className="mr-2">📝 最終更新:</span>
+              <span className="mr-2">最終更新:</span>
               <time dateTime={post.lastUpdated}>
                 {new Date(post.lastUpdated).toLocaleDateString("ja-JP", {
                   year: "numeric",
