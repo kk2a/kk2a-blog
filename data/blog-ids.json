@@ -1,6 +1,6 @@
 {
-  "nextId": 4,
-  "nextTestId": -5,
+  "nextId": 7,
+  "nextTestId": -6,
   "mappings": {
     "test-math-components-sample": -1,
     "test-mdx-annotation-sample": -2,
@@ -8,8 +8,12 @@
     "test-labelref": -4,
     "atcoder-irohen-yellow": 1,
     "omu-internship": 2,
-    "stern-brocot-tree": 3
+    "stern-brocot-tree": 3,
+    "test-template-script": -5,
+    "tiku-ten": 4,
+    "hon-no-jisui": 5,
+    "db_index": 6
   },
-  "lastUpdated": "2025-11-01T02:14:11.563Z",
+  "lastUpdated": "2026-02-23T20:58:44.551Z",
   "note": "正の数: 通常記事, 負の数: テスト/実験用記事"
 }

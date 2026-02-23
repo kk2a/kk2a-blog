@@ -1,3 +1,13 @@
+/* MDX blockquote（引用）の改行保持 */
+.prose blockquote {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.prose blockquote p {
+  white-space: pre-wrap;
+}
+
 /* MDXリストのネスト対応 */
 .prose ul ul,
 .prose ol ol,

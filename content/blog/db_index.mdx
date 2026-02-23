@@ -1,0 +1,964 @@
+---
+title: "DBパフォーマンスチューニング：インデックス設計と実行計画の実践"
+date: "2026-02-17"
+excerpt: "PostgreSQL 17を用いてインデックス設計と実行計画（Explain）の理解を深めるハンズオン演習．100万件規模のデータを実際に操作しクエリが速くなる瞬間を体感しながらB+treeなどのデータ構造の理論を学びます．"
+categories: ["データベース", "データ構造"]
+tags: ["PostgreSQL", "インデックス", "パフォーマンスチューニング", "B+tree", "Rust", "SQL"]
+---
+
+## なぜインデックスが必要か
+
+　データベースにおける**インデックス**は書籍の索引と同じようにデータの検索を高速化するための仕組みです．しかし「どんな時でも速くなる」わけではありません．むしろ不適切なインデックスは逆効果になることもあります．
+
+　本記事では次の3つを目標とします：
+
+1. 実行計画（EXPLAIN）を読んでクエリのボトルネックを特定できる
+2. インデックスの効果を数値で測定し適用可否を判断できる
+3. B+treeなどのデータ構造の理論的背景を理解する
+
+### 環境・前提知識
+
+　PostgreSQL 17を実行できる環境を用意してください．また，SQLの基本的な知識（SELECT, CREATEなど）を持っていることを前提とします．
+
+### 大規模データの生成
+
+　パフォーマンスの差を明確に観察するため100万件のレコードを持つテーブルを作成しましょう．
+
+<CodeBlock language="sql" title="100万件のユーザーテーブル作成">
+{`DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    user_uuid UUID DEFAULT gen_random_uuid(),
+    email VARCHAR(255),
+    age INT,
+    is_active BOOLEAN,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 100万件のダミーデータを挿入
+INSERT INTO users (email, age, is_active)
+SELECT
+    'user' || i || '@example.com',
+    (random() * 80 + 18)::INT,  -- 18〜98歳
+    (random() < 0.7)::BOOLEAN   -- 70%がアクティブ
+FROM generate_series(1, 1000000) AS i;`}
+</CodeBlock>
+
+<AlertBox type="info">
+**ポイント**
+
+- `user_uuid`: カーディナリティ（値の種類）が非常に高い列
+- `is_active`: カーディナリティが低い列（TRUE/FALSEの2値）
+- `age`: 中程度のカーディナリティ
+
+この違いがインデックスの効果に大きく影響します．
+</AlertBox>
+
+　データ生成には数秒〜数十秒かかります．完了後件数を確認してみましょう：
+
+<CodeBlock language="sql" title="データ件数の確認">
+{`SELECT COUNT(*) FROM users;
+-- 結果: 1000000`}
+</CodeBlock>
+
+## 実行計画（Explain）の解読
+
+### EXPLAINコマンドの基本
+
+　PostgreSQLの**EXPLAIN**コマンドはSQLクエリがどのように実行されるかを可視化するツールです．特に`ANALYZE`オプションを付けると実際にクエリを実行して正確な統計情報を取得できます．
+
+<CodeBlock language="sql" title="EXPLAIN ANALYZEの構文">
+{`EXPLAIN (ANALYZE, BUFFERS) <クエリ>;`}
+</CodeBlock>
+
+各オプションの意味：
+- `ANALYZE`: クエリを実際に実行して実測値を取得
+- `BUFFERS`: ディスクI/Oとキャッシュヒット率を表示
+
+### クエリオプティマイザの役割
+
+　多くのDBMS（Database Management System）には**クエリオプティマイザ**という仕組みが組み込まれています．これはSQLクエリを受け取って「最も効率的な実行方法」を自動的に選択するコンポーネントです．
+
+　オプティマイザは以下の情報を基に判断を行います：
+
+1. **統計情報**: テーブルの行数，列の値の分布，NULL値の割合など
+2. **コストモデル**: 各操作（Seq Scan，Index Scanなど）にかかる推定コスト
+3. **利用可能なインデックス**: どの列にどのタイプのインデックスが存在するか
+4. **物理リソース**: メモリ容量，ディスクI/O速度など
+
+<AlertBox type="info">
+**オプティマイザの判断例**
+
+「100万件のテーブルから1件を検索」→ Index Scanを選択  
+「100万件のテーブルから70万件を検索」→ Seq Scanを選択
+
+同じテーブルでも検索条件によって最適な方法が変わります．オプティマイザはこの判断を自動的に行います．
+</AlertBox>
+
+　EXPLAINコマンドはこのオプティマイザが選択した実行計画を可視化するツールです．実行計画を読むことでオプティマイザの判断が適切かどうかを検証できます．
+
+### Seq Scan（全表走査）を観察する
+
+　インデックスが存在しない状態で特定のUUIDを検索してみましょう．検索するUUIDはサブクエリを用いて取得し，WHERE句で使用しても良いのですが，実行結果を分かりやすくするために，最初に1つのUUIDを確認してから手動でクエリに埋め込む方法を取ります．
+
+<CodeBlock language="sql" title="インデックスなしの検索">
+{`SELECT user_uuid
+FROM users
+ORDER BY user_uuid
+LIMIT 1;
+-- 出力: 000015c3-4fe1-4411-b86e-e73dd35f541c
+
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT *
+FROM users
+WHERE user_uuid = '000015c3-4fe1-4411-b86e-e73dd35f541c';`}
+</CodeBlock>
+
+実行計画の出力例：
+
+<CodeBlock title="出力例（インデックスなし）">
+{`
+ Gather  (cost=1000.00..17571.43 rows=1 width=55) (actual time=65.382..68.775 rows=1 loops=1)
+   Workers Planned: 2
+   Workers Launched: 2
+   Buffers: shared hit=11363
+   ->  Parallel Seq Scan on users  (cost=0.00..16571.33 rows=1 width=55) (actual time=54.055..60.580 rows=0 loops=3)
+         Filter: (user_uuid = '000015c3-4fe1-4411-b86e-e73dd35f541c'::uuid)
+         Rows Removed by Filter: 333333
+         Buffers: shared hit=11363
+ Planning:
+   Buffers: shared hit=72
+ Planning Time: 0.558 ms
+ Execution Time: 68.879 ms
+`}
+</CodeBlock>
+
+<AlertBox type="warning">
+**読み方のポイント**
+
+- **Parallel Seq Scan**: 並列で全行を順番に読む（=遅い）
+- **Gather**: 複数のワーカープロセスの結果を収集
+- **Workers Launched: 2**: 2つのワーカーで並列処理
+- **cost=0.00..16571.33**: 推定コスト（開始コスト..終了コスト）．最初の行を返すまでのコストと全行を返すまでのコスト
+- **actual time=54.055..60.580**: 実際の実行時間（ミリ秒）．最初の行を返すまでの時間と全行を返すまでの時間
+- **Rows Removed by Filter: 333333**: 各ワーカーが33万行を読んで捨てた（3ワーカー合計で100万行）
+- **Buffers: shared hit=11363**: キャッシュから11363ページ読み込み
+- **Execution Time: 68.879 ms**: 合計実行時間（約0.069秒）
+</AlertBox>
+
+　たった1行を取得するのに3つのワーカーが並列で100万行すべてを読んでいることが分かりますね．並列処理を行っているものの，定数倍の高速化しか得られません．
+
+### 定着確認
+
+#### Q1.
+　上記の実行計画で実際にディスクから読み込まれたページ数（Buffers）はどこに表示されていますか？<FootnoteRef id="q1-answer">`Buffers: shared hit=11363`の部分．このうち`hit`はキャッシュヒット，`read`があればディスクからの実読み込みを示す．</FootnoteRef>
+
+#### Q2.
+　「Seq Scan」と表示される原因として最も適切なものを選んでください．<FootnoteRef id="q2-answer">**2.** 検索条件にインデックスが存在しない．テーブルサイズやPostgreSQLのバージョンは直接の原因ではない．</FootnoteRef>
+
+1. テーブルが小さすぎる
+2. 検索条件にインデックスが存在しない
+3. PostgreSQLのバージョンが古い
+
+#### Q3.
+　DBMSが統計情報に基づいてクエリの最適な実行方法を自動的に選択する仕組みを何と呼びますか？<FootnoteRef id="q3-answer">**クエリオプティマイザ**（Query Optimizer）．テーブルの行数や列の値の分布などの統計情報を基に，Seq ScanかIndex Scanかなどの実行計画を決定します．</FootnoteRef>
+
+## インデックス設計の実践と計測
+
+### インデックスの基本構文
+
+　実験に入る前にインデックスの基本的な構文と概念を確認しましょう．
+
+#### インデックスの作成
+
+<CodeBlock language="sql" title="基本的なインデックス作成構文">
+{`-- 単一列のインデックス
+CREATE INDEX インデックス名 ON テーブル名(列名);
+
+-- 複数列のインデックス（複合インデックス）
+CREATE INDEX インデックス名 ON テーブル名(列名1, 列名2, ...);
+
+-- ユニークインデックス
+CREATE UNIQUE INDEX インデックス名 ON テーブル名(列名);
+
+-- 部分インデックス（条件付き）
+CREATE INDEX インデックス名 ON テーブル名(列名) WHERE 条件;`}
+</CodeBlock>
+
+#### インデックスの削除
+
+<CodeBlock language="sql" title="インデックス削除構文">
+{`DROP INDEX インデックス名;
+
+-- 存在しない場合エラーを回避
+DROP INDEX IF EXISTS インデックス名;`}
+</CodeBlock>
+
+#### 主なインデックスタイプ
+
+　PostgreSQLは複数のインデックスタイプをサポートしています<FootnoteRef id="postgresql-index-type">https://www.postgresql.jp/document/10/html/indexes-types.html</FootnoteRef>：
+
+| タイプ | 用途 | 適用例 |
+|--------|------|--------|
+| **B-tree**（デフォルト） | 等価検索・範囲検索 | `=`, `<`, `>`, `BETWEEN`, `ORDER BY` |
+| **Hash** | 等価検索のみ | `=` のみ（範囲検索不可） |
+| **GiST**（汎用検索木） | いろいろ | いろいろ |
+| **GIN**（転置インデックス） | 全文検索 | いろいろ |
+
+　特に指定しない場合B-treeが使用されます．本記事では主にB-treeインデックスを扱います．GistはB-treeの拡張で，GINは全文検索や配列などの複雑なデータ型に特化しています．
+
+#### インデックスを使うべきケース
+
+- WHERE句で頻繁に使用される列
+- JOIN条件に使用される列
+- ORDER BYやGROUP BYで使用される列
+- カーディナリティが高い列（値の種類が多い）
+
+#### インデックスを避けるべきケース
+
+- 更新頻度が極めて高いテーブル（維持コストが大きい）
+- カーディナリティが極端に低い列（TRUE/FALSE，性別など）
+- 小規模なテーブル（全表走査の方が速い）
+- 検索結果が全体の10〜20%を超える場合
+
+### 定着確認
+
+#### Q1.
+　PostgreSQLで特にインデックスタイプを指定せずに`CREATE INDEX`を実行した場合，どのタイプのインデックスが作成されますか？<FootnoteRef id="q1-answer-index">**B-tree**．B-treeはデフォルトのインデックスタイプで，等価検索・範囲検索・ORDER BYなど最も汎用的な用途に使用されます．</FootnoteRef>
+
+#### Q2.
+　以下の2つのクエリのうち，インデックスを作成すべきなのはどちらですか？<FootnoteRef id="q2-answer-index">**A**．Aは特定の1件を検索するため，インデックスの効果が大きい．Bは全体の70%（70万行）を返すため，全表走査の方が効率的でインデックスの効果は限定的．</FootnoteRef>
+
+- **A**: `SELECT * FROM users WHERE user_uuid = '...'` （100万件中1件を検索）
+- **B**: `SELECT * FROM users WHERE is_active = TRUE` （100万件中70万件を返す）
+
+#### Q3.
+　インデックスを作成すると，SELECT文の実行速度は常に速くなるが，INSERT文やUPDATE文の実行速度は遅くなることがある．（True/False）<FootnoteRef id="q3-answer-index">**True**．インデックスはSELECT文を高速化するが，INSERT/UPDATE/DELETE時にはインデックスも更新する必要があるため，書き込み処理のオーバーヘッドが増加します．これがインデックスの維持コストです．特に複数のインデックスがある場合，書き込み性能への影響は大きくなります．</FootnoteRef>
+
+#### Q4.
+　Hashインデックスは範囲検索（`<`, `>`, `BETWEEN`など）にも使用できる．（True/False）<FootnoteRef id="q4-answer-index">**False**．Hashインデックスは等価検索（`=`）にのみ使用でき，範囲検索には使用できません．範囲検索にはB-treeインデックスを使用する必要があります．これはHashインデックスがハッシュ関数を使って値を格納するため，値の順序情報が失われるためです．</FootnoteRef>
+
+### 実験1: B-treeインデックスの効果
+
+　それでは`user_uuid`列にインデックスを作成してみましょう．
+
+<CodeBlock language="sql" title="インデックスの作成と検証">
+{`
+START TRANSACTION;
+
+-- インデックス作成（数秒かかります）
+CREATE INDEX idx_user_uuid ON users(user_uuid);
+
+-- インデックスを使った検索を実行
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT *
+FROM users 
+WHERE user_uuid = '000015c3-4fe1-4411-b86e-e73dd35f541c';
+
+ROLLBACK;
+`}
+</CodeBlock>
+
+実行計画の出力例：
+
+<CodeBlock title="出力例（インデックスあり）">
+{`
+ Index Scan using idx_user_uuid on users  (cost=0.42..8.44 rows=1 width=55) (actual time=0.705..0.727 rows=1 loops=1)
+   Index Cond: (user_uuid = '000015c3-4fe1-4411-b86e-e73dd35f541c'::uuid)
+   Buffers: shared hit=1 read=3
+ Planning:
+   Buffers: shared hit=92 read=1 dirtied=2
+ Planning Time: 7.772 ms
+ Execution Time: 1.684 ms
+`}
+</CodeBlock>
+
+<AlertBox type="success">
+**劇的な改善！**
+
+- **Parallel Seq Scan** → **Index Scan**: アルゴリズムが変わった
+- **68.879 ms** → **1.684 ms**: 約41倍の高速化！
+- **Buffers: 11363** → **4 (hit=1, read=3)**: 読み込みページが激減（キャッシュヒット1，ディスク読み込み3）
+- **Workers: 3** → **1**: 並列処理が不要になった
+</AlertBox>
+
+### 実験2: カーディナリティが低い列
+
+　次に`is_active`列（TRUE/FALSEの2値のみ）で検索してみましょう．
+
+<CodeBlock language="sql" title="低カーディナリティ列の検索">
+{`-- インデックスなしで実行
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM users WHERE is_active = TRUE;`}
+</CodeBlock>
+
+　結果として約70万行（70%）が返されることを確認してください．このような場合インデックスを作成しても効果は限定的です．以下を実行しても，依然として**Seq Scan**が選択されることを確認してください．
+
+<CodeBlock language="sql" title="インデックス作成後">
+{`
+START TRANSACTION;
+
+-- 低カーディナリティ列にインデックス作成
+CREATE INDEX idx_is_active ON users(is_active);
+
+-- インデックスを使った検索を実行
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM users WHERE is_active = TRUE;
+
+ROLLBACK;
+`}
+</CodeBlock>
+
+
+### 実験3: 複合インデックス
+
+　複数列を組み合わせた条件では**複合インデックス**が有効です．
+
+<CodeBlock language="sql" title="年齢範囲とアクティブフラグでの絞り込み">
+{`
+START TRANSACTION;
+
+-- 複合インデックス作成
+CREATE INDEX idx_age_active ON users(is_active, age);
+
+-- 【ケース1】両方の列を使用（○ インデックスが効く）
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM users 
+WHERE age BETWEEN 20 AND 30 AND is_active = TRUE;
+
+-- 【ケース2】先頭列でない列のみ使用（× インデックスが効かない）
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM users 
+WHERE age BETWEEN 20 AND 30;
+
+-- 【ケース3】先頭列のみ使用（インデックスを使用しても良いが低カーディナリティなので，Seq Scanとなる）
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM users 
+WHERE is_active = TRUE;
+
+ROLLBACK;
+`}
+</CodeBlock>
+
+　複合インデックスでは**列の順序**が重要です：
+- `(is_active, age)`: is_active → ageの順で絞り込む
+- WHERE句で`is_active`だけ指定してもインデックスは利用可能だが，低カーディナリティ（TRUE/FALSEの2値のみ）なので結局Seq Scanが選ばれる（ケース3）
+- WHERE句で`age`だけ指定するとインデックスが無効（ケース2）→ Seq Scanになる
+
+<AlertBox type="warning">
+**複合インデックスの重要なルール**
+
+複合インデックス `(列A, 列B, 列C)` は，以下の検索パターンで有効です：
+- `WHERE 列A = ...` ✓
+- `WHERE 列A = ... AND 列B = ...` ✓
+- `WHERE 列A = ... AND 列B = ... AND 列C = ...` ✓
+
+しかし，以下のパターンでは無効です：
+- `WHERE 列B = ...` ✗（先頭列がない）
+- `WHERE 列C = ...` ✗（先頭列がない）
+- `WHERE 列B = ... AND 列C = ...` ✗（先頭列がない）
+</AlertBox>
+
+## 演習課題：SQLドリル
+
+　ここまでの知識を使って以下の問題を解いてみましょう．
+
+### 問題1: 最適なインデックス設計
+
+　次のクエリを高速化するため最も効果的なインデックスを1つ提案してください．
+
+<CodeBlock language="sql" title="問題1">
+{`SELECT id, email, created_at 
+FROM users 
+WHERE age >= 30 AND is_active = TRUE
+ORDER BY created_at DESC
+LIMIT 100;`}
+</CodeBlock>
+
+**ヒント**: WHERE句ORDER BY句の両方を考慮しましょう．
+
+### 問題2: インデックスの作成
+
+　以下の条件でインデックスを作成してください．
+
+1. `email`列に対する単純なインデックス
+2. `age`（昇順）と`created_at`（降順）の複合インデックス
+
+<CodeBlock language="sql" title="問題2">
+{`-- 1. email列のインデックス
+-- ここにCREATE INDEX文を書いてください
+
+-- 2. age（昇順）とcreated_at（降順）の複合インデックス
+-- ここにCREATE INDEX文を書いてください`}
+</CodeBlock>
+
+**ヒント**: 降順インデックスには`DESC`キーワードを使います．
+
+### 問題3: 実行計画の分析
+
+　次のクエリの実行計画を見て，パフォーマンスの問題点と改善策を提案してください．
+
+<CodeBlock language="sql" title="問題3">
+{`EXPLAIN ANALYZE
+SELECT email, age, created_at
+FROM users
+WHERE age > 25 AND age < 30 AND is_active = TRUE
+ORDER BY created_at DESC
+LIMIT 10;
+
+-- 実行計画（例）:
+-- Limit (cost=0.00..431.00 rows=10 width=45) (actual time=45.234..45.456 rows=10 loops=1)
+--   -> Seq Scan on users (cost=0.00..21085.00 rows=489 width=45) (actual time=0.234..45.432 rows=10 loops=1)
+--       Filter: ((age > 25) AND (age < 30) AND (is_active = true))
+--       Rows Removed by Filter: 998456`}
+</CodeBlock>
+
+**問い**: この実行計画から何が読み取れますか？どのようなインデックスを追加すべきでしょうか？
+
+### 問題4: コストとベネフィットのトレードオフ
+
+　次のテーブルに対してインデックス戦略を立ててください．
+
+<CodeBlock language="sql" title="問題4のシナリオ">
+{`-- テーブル: products (100万件)
+-- カラム: id, name, category, price, stock, last_updated
+
+-- 実行頻度の高いクエリ:
+-- Q1: SELECT * FROM products WHERE category = ? AND price BETWEEN ? AND ? ORDER BY price;  (1000回/分)
+-- Q2: SELECT * FROM products WHERE stock < 10;  (10回/分)
+-- Q3: UPDATE products SET stock = stock - 1 WHERE id = ?;  (500回/分)
+
+-- 質問: どのインデックスを作成しますか？作成しないものがあればその理由も説明してください．`}
+</CodeBlock>
+
+**ヒント**: 読み取りだけでなく，更新の頻度も考慮しましょう．
+
+### 解答例
+
+#### 問題1の解答
+
+<CodeBlock language="sql" title="問題1の解答">
+{`CREATE INDEX idx_age_active_created 
+ON users(age, is_active, created_at DESC);`}
+</CodeBlock>
+
+**理由**:
+- `age >= 30`で絞り込み（範囲検索）
+- `is_active = TRUE`でさらに絞り込み
+- `created_at DESC`でソート済みのためORDER BYのコストがゼロになる
+- LIMIT 100で早期終了が可能
+
+またはカーディナリティを考慮すると：
+
+<CodeBlock language="sql" title="別の解答例">
+{`CREATE INDEX idx_active_age_created 
+ON users(is_active, age, created_at DESC);`}
+</CodeBlock>
+
+　`is_active = TRUE`が先に来る方がより多くの行を早期に除外できる場合もあります．実際の効果は`EXPLAIN ANALYZE`で比較してください．
+
+#### 問題2の解答
+
+<CodeBlock language="sql" title="問題2の解答">
+{`-- 1. email列の単純なインデックス
+CREATE INDEX idx_email ON users(email);
+
+-- 2. age（昇順）とcreated_at（降順）の複合インデックス
+CREATE INDEX idx_age_created ON users(age, created_at DESC);`}
+</CodeBlock>
+
+**ポイント**:
+- 単純インデックスは列名のみを指定
+- 複合インデックスでは各列に対して`ASC`（昇順，デフォルト）または`DESC`（降順）を指定可能
+- `DESC`を明示的に指定すると，降順ソートのクエリで効率的
+
+#### 問題3の解答
+
+**問題点**:
+- **Seq Scan**が実行されている（インデックスが使われていない）
+- 998,456行をフィルタで除外している（Rows Removed by Filter）
+- `age`の範囲検索と`is_active`のフィルタが効いていない
+
+**改善策**:
+
+<CodeBlock language="sql" title="問題3の解答">
+{`-- 解決策1: 複合インデックス（推奨）
+CREATE INDEX idx_age_active_created 
+ON users(age, is_active, created_at DESC);
+
+-- 解決策2: 部分インデックス
+CREATE INDEX idx_active_age_created 
+ON users(age, created_at DESC) 
+WHERE is_active = TRUE;`}
+</CodeBlock>
+
+**理由**:
+- `age`の範囲検索でデータを絞り込み
+- `is_active = TRUE`でさらにフィルタリング
+- `created_at DESC`でソート済みのため`LIMIT 10`が高速
+- 改善後は10行取得するだけで済む（Rows Removed by Filterが激減）
+
+#### 問題4の解答
+
+**推奨するインデックス**:
+
+<CodeBlock language="sql" title="問題4の解答">
+{`-- インデックス1: Q1用の複合インデックス
+CREATE INDEX idx_category_price ON products(category, price);
+
+-- インデックス2: Q2用の部分インデックス（オプション）
+-- CREATE INDEX idx_low_stock ON products(id) WHERE stock < 10;`}
+</CodeBlock>
+
+**判断理由**:
+
+1. **`idx_category_price`を作成**:
+   - Q1が1000回/分と非常に高頻度
+   - `category`での等値検索 → `price`での範囲検索とソートに最適
+   - 読み取りの劇的な高速化が期待できる
+
+2. **`idx_low_stock`は慎重に判断**:
+   - Q2は10回/分と低頻度
+   - `stock < 10`は選択性が高い（全体の1%未満と想定）
+   - 作成しても良いが優先度は低い
+   - 部分インデックスにすることでサイズを削減できる
+
+3. **`stock`列の単純インデックスは作成しない**:
+   - Q3のUPDATEが500回/分と高頻度
+   - `stock`にインデックスを貼ると毎回インデックス更新が必要
+   - Q3は主キー`id`で検索するためインデックス不要
+   - 書き込みコストの増加を避けるため見送り
+
+**トレードオフの考え方**:
+- 読み取りが圧倒的に多い列 → インデックス作成を積極的に検討
+- 更新が頻繁な列 → インデックスの維持コストを考慮
+- 実行頻度とデータ選択性のバランスで判断
+
+## 付録：B-treeの理論・実装
+
+　ここでは，B-treeの基本的な構造とアルゴリズムを実際のコードを用いて説明します．一般的に，データベースのインデックスはB+treeを使用しているようで，本質的なアルゴリズムはB-treeと同様です．そのため，ここではB+treeの実装を通じて同時にB-treeの理論も理解していきましょう．実装はRustで行い<FootnoteRef id="why-rust">Rustを使った理由は特になく，私の趣味です．また，テストモジュール以外完全に，私人間自身が書きましたので，温かみのあるコードとなっております．</FootnoteRef>，[コードはGitHubに公開しています](https://github.com/kk2a/b-tree/tree/main/src/bplus)．
+
+### B-treeとB+treeの基本構造
+
+　**B-tree**は多分岐の平衡木です．各ノードが複数のキーと子ポインタを持ち，以下の特徴があります：
+
+- 各ノードは最大 $m$ 個の子を持つ（$m$ を**次数**と呼ぶ）
+- 根以外のノードは最低 $\lceil m/2 \rceil$ 個の子を持つ
+- すべての葉ノードは同じ深さ（完全にバランスされている）
+- 各ノードのキーはソート済み
+
+　**B+tree**はB-treeの変種で，データベースシステムで広く採用されています．B-treeとの主な違いは：
+
+1. **データの格納位置**: B-treeは内部ノードにもデータを持つが，B+treeは葉ノードのみにデータを持つ
+2. **葉ノードの連結**: B+treeの葉ノードは双方向リンクで連結されており，範囲検索（`WHERE age BETWEEN 20 AND 30`）が効率的
+3. **内部ノードの役割**: B+treeの内部ノードはインデックスとしてのみ機能し，データは持たない
+
+### なぜ平衡二分探索木ではなくB-treeか
+
+　平衡二分探索木（Balanced Binary Search Tree, BBST）も検索に使えるデータ構造<FootnoteRef id="bbst">例えば，連想配列の実装でよく使われています．</FootnoteRef>ですが，データベースのインデックスには**B-tree**が選ばれます．その理由は：
+
+#### 1. ディスクI/Oの最小化
+
+　データベースはディスク上にデータを保存します．ディスクアクセスはメモリアクセスに比べて数千〜数万倍遅いため，**ディスクアクセス回数を減らすことが最優先**です．
+
+- **平衡二分探索木**: 各ノードが2つの子しか持たないため，木の高さが高くなる → ディスクアクセス回数が多い
+- **B-tree**: 各ノードが数百個の子を持てるため，木の高さが低い → ディスクアクセス回数が少ない
+
+　例えば100万件のデータを格納する場合：
+- 平衡二分探索木：高さ約20 → 最大20回のディスクアクセス
+- B-tree（次数200）：高さ約3 → 最大3回のディスクアクセス
+
+#### 2. キャッシュ効率
+
+　B-treeの各ノードは1つのディスクページ（通常8KB）に収まるように設計されます．1回のディスクアクセスで数百個のキーを読み込めるため，キャッシュ効率が高くなります．
+
+### B+treeの実装
+
+　ここから実際のRustコードを通じてB+treeの実装を見ていきます．以下の説明と実装は<ReferenceRef id="bayer1970" />をもとに作成しています．ただし，ノードプールは私が独自に採用したものです．
+
+#### ノード構造の実装
+
+　B+treeのノードには**葉ノード**（LeafNode）と**内部ノード**（InternalNode）の2種類があります．
+
+<CodeBlock language="rust" title="ノードの定義（node.rs）">
+{`pub type NodeId = usize;
+
+#[derive(Debug)]
+pub struct LeafNode<K, V> {
+    pub keys: Vec<K>,
+    pub values: Vec<V>,
+    pub prev: Option<NodeId>,  // 前の葉ノードへのポインタ
+    pub next: Option<NodeId>,  // 次の葉ノードへのポインタ
+}
+
+#[derive(Debug)]
+pub struct InternalNode<K> {
+    pub keys: Vec<K>,
+    pub children: Vec<NodeId>,  // 子ノードへのポインタ
+}
+
+#[derive(Debug)]
+pub enum Node<K, V> {
+    Leaf(LeafNode<K, V>),
+    Internal(InternalNode<K>),
+}`}
+</CodeBlock>
+
+**実装のポイント**：
+- 葉ノードは`prev`/`next`で双方向リンクを形成
+- 葉ノードのみ`values`を持つ
+- 内部ノードは`children`へのポインタのみ
+- `NodeId`は`usize`型で，ノードプール内のインデックスとして機能
+
+#### メモリ管理：ノードプール
+
+　削除されたノードのIDを再利用することでメモリの断片化を防ぎます．
+
+<CodeBlock language="rust" title="ノードプールの実装（pool.rs）">
+{`#[derive(Debug)]
+pub struct NodePool<K, V> {
+    nodes: Vec<Node<K, V>>,
+    free_ids: Vec<NodeId>,
+}
+
+impl<K, V> NodePool<K, V> {
+    fn alloc_impl(&mut self, node: Node<K, V>) -> NodeId {
+        if let Some(id) = self.free_ids.pop() {
+            self.nodes[id] = node;  // 解放済みIDを再利用
+            id
+        } else {
+            let id = self.nodes.len();
+            self.nodes.push(node);  // 新規ID割り当て
+            id
+        }
+    }
+
+    pub fn free(&mut self, id: NodeId) {
+        self.free_ids.push(id)  // 解放リストに追加
+    }
+}`}
+</CodeBlock>
+
+#### 検索アルゴリズムの実装
+
+　検索は木のルートから葉ノードまでたどります．各内部ノードで二分探索を行い，適切な子ノードを選択します．
+
+<CodeBlock language="rust" title="検索の実装">
+{`pub fn search(&self, key: &K) -> Option<&V> {
+    let mut now = self.root?;  // ルートから開始
+    loop {
+        let node = self.pool.get(now);
+        let keys = node.keys();
+        
+        // 二分探索でキーの位置を探す
+        let idx = keys.partition_point(|k| k < key);
+        
+        if node.is_leaf() {
+            // 葉ノードに到達：キーが一致すれば値を返す
+            if idx < keys.len() && &keys[idx] == key {
+                return Some(&node.values()[idx]);
+            }
+            return None;
+        } else {
+            // 内部ノード：適切な子ノードへ移動
+            now = node.children()[idx];
+        }
+    }
+}`}
+</CodeBlock>
+
+**計算量の確認**：
+- `loop`は木の高さ $h = O(\log_m n)$ 回実行される
+- `partition_point`（二分探索）は各ノードで $O(\log m)$
+- 合計：$O(\log_m n \cdot \log m) = O(\log n)$
+
+　実際のディスクアクセスを考えると，`self.pool.get(now)`が木の高さ分（約3回）だけ発生します．
+
+### 挿入アルゴリズムの実装と償却計算量
+
+　挿入は再帰的に行います．ノードが満杯（オーバーフロー）になった場合は分割します．
+
+<CodeBlock language="rust" title="挿入の実装（メイン部分）">
+{`fn insert_inner(&mut self, now: NodeId, key: K, value: V) -> InsertResult<K> {
+    let node = self.pool.get(now);
+    let keys = node.keys();
+    
+    // キーの挿入位置を二分探索
+    let idx = keys.partition_point(|k| k < &key);
+    
+    if node.is_leaf() {
+        // 葉ノード：キーと値を挿入
+        let node = self.pool.get_mut(now);
+        if idx < node.keys().len() && node.keys()[idx] == key {
+            return InsertResult::AlreadyExists;  // 重複
+        }
+        node.keys_mut().insert(idx, key);
+        node.values_mut().insert(idx, value);
+        
+        // オーバーフローチェック
+        if self.is_over(now) {
+            let (parent_key, new_id) = self.split(now);
+            return InsertResult::Split(parent_key, new_id);
+        }
+        InsertResult::InsertCompleted
+    } else {
+        // 内部ノード：再帰的に子ノードへ挿入
+        let child_id = node.children()[idx];
+        match self.insert_inner(child_id, key, value) {
+            InsertResult::Split(child_key, new_child_id) => {
+                // 子ノードが分割された場合，親ノードを更新
+                let node = self.pool.get_mut(now);
+                node.keys_mut().insert(idx, child_key);
+                node.children_mut().insert(idx + 1, new_child_id);
+                
+                if self.is_over(now) {
+                    let (parent_key, new_id) = self.split(now);
+                    InsertResult::Split(parent_key, new_id)
+                } else {
+                    InsertResult::InsertCompleted
+                }
+            }
+            other => other,
+        }
+    }
+}`}
+</CodeBlock>
+
+**分割アルゴリズム**：
+
+<CodeBlock language="rust" title="ノード分割の実装">
+{`fn split(&mut self, old_id: NodeId) -> (K, NodeId) {
+    let is_leaf = self.pool.get(old_id).is_leaf();
+    
+    if is_leaf {
+        // 葉ノードの分割
+        let mid = self.k;  // 分割位置
+        let (new_leaf_id, new_leaf) = self.pool.alloc_leaf();
+        
+        let old_leaf = self.pool.get_mut(old_id).as_leaf_mut();
+        new_leaf.as_leaf_mut().keys = old_leaf.keys.split_off(mid);
+        new_leaf.as_leaf_mut().values = old_leaf.values.split_off(mid);
+        
+        // 双方向リンクの更新
+        new_leaf.as_leaf_mut().next = old_leaf.next;
+        new_leaf.as_leaf_mut().prev = Some(old_id);
+        old_leaf.next = Some(new_leaf_id);
+        
+        let parent_key = new_leaf.keys()[0].clone();
+        (parent_key, new_leaf_id)
+    } else {
+        // 内部ノードの分割
+        let mid = self.k;
+        let (new_internal_id, new_internal) = self.pool.alloc_internal();
+        
+        let old_internal = self.pool.get_mut(old_id).as_internal_mut();
+        let parent_key = old_internal.keys[mid].clone();
+        
+        new_internal.as_internal_mut().keys = old_internal.keys.split_off(mid + 1);
+        new_internal.as_internal_mut().children = old_internal.children.split_off(mid + 1);
+        old_internal.keys.pop();  // 親に上がるキーを削除
+        
+        (parent_key, new_internal_id)
+    }
+}`}
+</CodeBlock>
+
+**計算量**：
+- 検索フェーズ：$O(\log n)$
+- 分割は $O(m)$ だが，償却計算量では $O(1)$
+- 合計：$O(\log n)$
+
+#### 挿入の計算量解析と次数の効果
+
+　挿入操作の計算量を詳しく解析します：
+
+1. **検索フェーズ**: $O(\log n)$. ルートから葉まで木の高さ $h = O(\log_m n)$ 分たどる
+2. **挿入操作**: $O(m)$. ノード内での挿入（`Vec::insert`）
+3. **分割操作**: $O(m)$. ノードを2つに分割
+
+　最悪ケースでは，葉から根まで連鎖的に分割が発生しますが，これは稀です．**償却計算量**では，分割は $O(1)$ 回しか発生しないため：
+
+$$
+\text{挿入} = O(\log n) + O(1) \cdot O(m) = O(\log n)
+$$
+
+（$m$ は定数とみなす）
+
+　次数 $m$ が大きいほど木の高さが低くなり，ノード訪問回数が減ります．例えば次数100の場合，20万件のデータでも：
+
+$$
+h = \log_{100} 200000 \approx \frac{\log 200000}{\log 100} \approx \frac{5.3}{2} \approx 2.65
+$$
+
+つまり約3回のノードアクセスで任意のキーに到達できます．
+
+### 削除アルゴリズムと償却計算量
+
+#### 削除の実装
+
+　削除も再帰的に行います．ノードが最小サイズを下回る（アンダーフロー）場合はマージまたは兄弟から借ります．
+
+<CodeBlock language="rust" title="削除の実装（コア部分）">
+{`fn delete_inner(&mut self, now: NodeId, key: K) -> DeleteResult {
+    let node = self.pool.get(now);
+    let keys = node.keys();
+    let idx = keys.partition_point(|k| k < &key);
+    
+    if node.is_leaf() {
+        // 葉ノード：キーを削除
+        if idx >= keys.len() || keys[idx] != key {
+            return DeleteResult::NoExists;
+        }
+        let node = self.pool.get_mut(now);
+        node.keys_mut().remove(idx);
+        node.values_mut().remove(idx);
+        
+        if self.is_under(now) {
+            DeleteResult::Underflow
+        } else {
+            DeleteResult::DeleteCompleted
+        }
+    } else {
+        // 内部ノード：再帰的に削除
+        let child_id = node.children()[idx];
+        match self.delete_inner(child_id, key) {
+            DeleteResult::Underflow => {
+                // 子ノードがアンダーフローした場合
+                self.handle_underflow(now, idx);
+                
+                if self.is_under(now) {
+                    DeleteResult::Underflow
+                } else {
+                    DeleteResult::DeleteCompleted
+                }
+            }
+            other => other,
+        }
+    }
+}`}
+</CodeBlock>
+
+**マージアルゴリズム**：
+
+<CodeBlock language="rust" title="ノードマージの実装">
+{`fn merge(&mut self, now: NodeId, idx: usize) {
+    // now の子ノード (idx, idx+1) を結合
+    let (left_id, right_id) = {
+        let children = self.pool.get(now).children();
+        (children[idx], children[idx + 1])
+    };
+    
+    let is_leaf = self.pool.get(right_id).is_leaf();
+    
+    if is_leaf {
+        // 葉ノードのマージ
+        let (left_keys, right_keys) = /* キーの移動 */;
+        let (left_values, right_values) = /* 値の移動 */;
+        
+        // 双方向リンクの更新
+        if let Some(next_id) = right_next {
+            self.pool.get_mut(next_id).prev_mut() = Some(left_id);
+        }
+        self.pool.get_mut(left_id).next_mut() = right_next;
+        
+        // 親ノードから右ノードへの参照を削除
+        let now_node = self.pool.get_mut(now);
+        now_node.keys_mut().remove(idx);
+        now_node.children_mut().remove(idx + 1);
+    } else {
+        // 内部ノードのマージ（親のキーも下ろす）
+        let parent_key = self.pool.get(now).keys()[idx].clone();
+        /* キーと子の移動 */
+    }
+    
+    self.pool.free(right_id);  // 右ノードを解放
+}`}
+</CodeBlock>
+
+#### 削除の計算量解析
+
+　削除操作も挿入と同様に：
+
+1. **検索フェーズ**: $O(\log n)$. 削除するキーを探す
+2. **削除操作**: $O(m)$. ノード内のキーを削除
+3. **マージ操作**: $O(m)$. 兄弟ノードと結合
+
+　挿入と同じく，**償却計算量**ではマージは $O(1)$ 回なので：
+
+$$
+\text{削除} = O(\log n)
+$$
+
+　マージ時には葉ノードの双方向リンク（`prev`/`next`）を更新する必要があります．これにより，マージ後も範囲検索の効率性が保たれます．
+
+### パフォーマンス測定とSeq Scan vs Index Scan
+
+#### 実装のパフォーマンス測定
+
+　実装の正しさと性能を検証するため，大規模データでのテストを行いました．
+
+<CodeBlock language="rust" title="パフォーマンステスト">
+{`#[test]
+fn test_insert_large_time_limit_deg_100() {
+    let mut tree = BplusTree::new(100);  // 次数100
+    let n = 200_000;
+    let start = Instant::now();
+    
+    for i in 1..=n {
+        tree.insert(i, format!("value_{i}"));
+    }
+    
+    let elapsed = start.elapsed();
+    assert!(elapsed.as_millis() < 500);  // 500ms以内
+}`}
+</CodeBlock>
+
+**実測結果**：
+- 次数4：20万件挿入に約450ms
+- 次数20：20万件挿入に約180ms
+- 次数100：20万件挿入に約120ms
+
+　次数が大きいほど木の高さが低くなり，ノード訪問回数が減るため高速化します．次数100の場合：
+
+$$
+h = \log_{100} 200000 \approx 2.65 \approx 3
+$$
+
+つまり約3回のノードアクセスで任意のキーに到達できます．
+
+
+## まとめ
+
+　本記事ではインデックスの効果を実際に体感しその背後にあるB+treeの理論を学びました．実務では以下の点に注意してインデックス設計を行ってください：
+
+- EXPLAINで実行計画を必ず確認する
+- カーディナリティと選択性を考慮する
+- 不要なインデックスは削除する（維持コストを避ける）
+
+<FootnoteList />
+
+<ReferenceList /> 
+
+<Reference
+id="bayer1970"
+authors="Bayer, R.; McCreight, E."
+year="1970"
+title="Organization and maintenance of large ordered indices"
+journal="Proceedings of the 1970 ACM SIGFIDET (Now SIGMOD) Workshop on Data Description, Access and Control"
+pages="107"
+doi="10.1145/1734663.1734671"
+/>
+
+<Reference
+id="mick2024"
+authors="ミック"
+year="2024"
+title="達人に学ぶDB設計徹底指南書 第2版"
+publisher="翔泳社"
+/>
+{/* 達人に学ぶDB設計 */}
+
+
+---
+<span style={{ fontSize: '0.875rem', color: 'var(--text-3)' }}>本コンテンツの作成時間：約20時間</span>

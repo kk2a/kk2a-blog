@@ -56,6 +56,11 @@
   --tooltip-header-text: #374151;
   --tooltip-content-text: #4b5563;
   --tooltip-shadow: rgba(0, 0, 0, 0.1);
+
+  /* Quote（引用）コンポーネント用CSS変数 */
+  --quote-bg: #f8fafc;
+  --quote-border: #3b82f6;
+  --quote-text: #475569;
 }
 
 /* ダークテーマ */
@@ -115,4 +120,9 @@
   --tooltip-header-text: #f8fafc;
   --tooltip-content-text: #e2e8f0;
   --tooltip-shadow: rgba(0, 0, 0, 0.3);
+
+  /* ダークテーマのQuote（引用）コンポーネント用CSS変数 */
+  --quote-bg: #1e293b;
+  --quote-border: #60a5fa;
+  --quote-text: #cbd5e1;
 }

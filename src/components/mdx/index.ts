@@ -1,6 +1,7 @@
 export { AlertBox } from "./AlertBox";
 export { CodeBlock } from "./CodeBlock";
 export { ImageWithCaption } from "./ImageWithCaption";
+export { Quote } from "./Quote";
 export { FootnoteProvider, FootnoteRef, FootnoteList } from "./Footnote";
 export {
   ReferenceProvider,
