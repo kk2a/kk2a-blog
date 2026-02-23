@@ -12,7 +12,8 @@
     "start": "next start",
     "lint": "next lint",
     "deploy": "next build && npx wrangler deploy",
-    "preview": "next build && npx wrangler dev"
+    "preview": "next build && npx wrangler dev",
+    "prepare": "husky"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.0",
@@ -29,6 +30,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-katex": "^3.1.0",
+    "react-syntax-highlighter": "^16.1.0",
     "reading-time": "^1.5.0",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
@@ -43,11 +45,17 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-katex": "^3.0.4",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5",
     "wrangler": "^4.30.0"
+  },
+  "lint-staged": {
+    "content/blog/*.mdx": "npx tsx scripts/update-mdx-metadata.ts"
   }
 }

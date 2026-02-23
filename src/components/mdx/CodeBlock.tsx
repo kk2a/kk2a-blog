@@ -2,6 +2,8 @@
 
 import { Copy, Check } from "lucide-react";
 import { ReactNode, useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface CodeBlockProps {
   children: ReactNode;
@@ -39,6 +41,8 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
     }
   };
 
+  const codeString = getCode();
+
   return (
     <div className="my-6 rounded-lg border border-gray-700 overflow-hidden">
       {(title || language) && (
@@ -68,9 +72,29 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
       )}
 
       <div className="relative bg-code">
-        <pre className="p-4 overflow-x-auto text-sm font-mono custom-scrollbar">
-          <code className="text-code">{getCode()}</code>
-        </pre>
+        {language ? (
+          <SyntaxHighlighter
+            language={language}
+            style={oneDark}
+            customStyle={{
+              margin: 0,
+              padding: "1rem",
+              background: "transparent",
+              fontSize: "0.875rem",
+            }}
+            codeTagProps={{
+              style: {
+                fontFamily: "monospace",
+              },
+            }}
+          >
+            {codeString}
+          </SyntaxHighlighter>
+        ) : (
+          <pre className="p-4 overflow-x-auto text-sm font-mono custom-scrollbar">
+            <code className="text-code">{codeString}</code>
+          </pre>
+        )}
 
         {!title && !language && (
           <button
