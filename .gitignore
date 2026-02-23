@@ -43,3 +43,6 @@ next-env.d.ts
 
 # cloudflare
 .wrangler/
+
+# auto-generated ID mappings
+/data/
