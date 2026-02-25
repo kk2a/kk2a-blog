@@ -3,9 +3,43 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import {
+  calculateHash,
+  getCurrentDateISO,
+  BLOG_REQUIRED_FIELDS,
+  PAGE_REQUIRED_FIELDS,
+} from "./lib/mdx-utils";
+
+/**
+ * メタデータフィールドを標準的な順序に並び替え
+ */
+function sortMetadataFields(
+  data: Record<string, unknown>,
+  isBlog: boolean,
+): Record<string, unknown> {
+  const order = isBlog ? [...BLOG_REQUIRED_FIELDS] : [...PAGE_REQUIRED_FIELDS];
+
+  const sorted: Record<string, unknown> = {};
+  for (const key of order) {
+    if (key in data) {
+      sorted[key] = data[key];
+    }
+  }
+
+  // 標準順序にないフィールドを最後に追加
+  for (const key of Object.keys(data)) {
+    if (!(key in sorted)) {
+      sorted[key] = data[key];
+    }
+  }
+
+  return sorted;
+}
 
 /**
  * MDXファイルのメタデータを更新
+ * - コンテンツが変更された場合：lastUpdatedとcontentHashを更新
+ * - メタデータの順序を標準化
  */
 function updateMdxMetadata(filePath: string): boolean {
   if (!filePath.endsWith(".mdx")) {
@@ -16,14 +50,39 @@ function updateMdxMetadata(filePath: string): boolean {
     const fileContents = fs.readFileSync(filePath, "utf8");
     const { data, content } = matter(fileContents);
 
-    // lastUpdated を常に現在時刻に更新
-    const now = new Date().toISOString();
-    if (data.lastUpdated !== now) {
-      data.lastUpdated = now;
-      console.log(`✅ ${path.basename(filePath)}: lastUpdated を更新`);
+    const relativePath = path.relative(process.cwd(), filePath);
+    const isBlog =
+      relativePath.includes("content/blog") ||
+      relativePath.includes("content\\blog");
 
-      const updatedContent = matter.stringify(content, data);
+    let updated = false;
+
+    // コンテンツのハッシュを計算
+    const currentHash = calculateHash(content);
+    const previousHash = data.contentHash as string | undefined;
+
+    // コンテンツが変更された場合のみlastUpdatedを更新
+    if (currentHash !== previousHash) {
+      const now = getCurrentDateISO();
+      data.lastUpdated = now;
+      data.contentHash = currentHash;
+      console.log(
+        `✅ ${path.basename(filePath)}: コンテンツが変更されたためlastUpdatedを更新`,
+      );
+      updated = true;
+    }
+
+    // メタデータの順序を標準化
+    const sortedData = sortMetadataFields(data, isBlog);
+
+    const updatedContent = matter.stringify(content, sortedData);
+
+    // 実際にファイル内容が変わった場合のみ書き込み
+    if (updatedContent !== fileContents) {
       fs.writeFileSync(filePath, updatedContent, "utf8");
+      if (!updated) {
+        console.log(`✅ ${path.basename(filePath)}: メタデータをフォーマット`);
+      }
       return true;
     }
 
@@ -45,16 +104,9 @@ function main(): void {
     return;
   }
 
-  console.log("🔄 MDXメタデータを更新中...\n");
-
-  let updatedCount = 0;
   for (const file of files) {
-    if (updateMdxMetadata(file)) {
-      updatedCount++;
-    }
+    updateMdxMetadata(file);
   }
-
-  console.log(`\n✨ ${updatedCount}/${files.length} ファイルを更新しました`);
 }
 
 // スクリプト実行

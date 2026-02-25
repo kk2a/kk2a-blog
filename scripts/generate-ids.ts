@@ -56,14 +56,14 @@ class IdMapper {
     if (fs.existsSync(this.filePath)) {
       try {
         const data: IdMappingData = JSON.parse(
-          fs.readFileSync(this.filePath, "utf8")
+          fs.readFileSync(this.filePath, "utf8"),
         );
         this.mappings = data.mappings || {};
         this.nextId = data.nextId || 1;
       } catch (error) {
         console.warn(
           `${this.fileName}の読み込みに失敗しました:`,
-          (error as Error).message
+          (error as Error).message,
         );
         this.mappings = {};
         this.nextId = 1;
@@ -117,7 +117,7 @@ class BlogIdMapper {
     if (fs.existsSync(this.filePath)) {
       try {
         const data: BlogIdMappingData = JSON.parse(
-          fs.readFileSync(this.filePath, "utf8")
+          fs.readFileSync(this.filePath, "utf8"),
         );
         this.mappings = data.mappings || {};
         this.nextId = data.nextId || 1;
@@ -125,7 +125,7 @@ class BlogIdMapper {
       } catch (error) {
         console.warn(
           `${this.fileName}の読み込みに失敗しました:`,
-          (error as Error).message
+          (error as Error).message,
         );
         this.mappings = {};
         this.nextId = 1;
@@ -136,7 +136,7 @@ class BlogIdMapper {
 
   private isTestSlug(slug: string): boolean {
     return this.testPatterns.some(
-      (pattern) => slug.includes(pattern) || slug.startsWith(pattern)
+      (pattern) => slug.includes(pattern) || slug.startsWith(pattern),
     );
   }
 
@@ -164,10 +164,10 @@ class BlogIdMapper {
 
   getStats(): string {
     const regularCount = Object.values(this.mappings).filter(
-      (id) => id > 0
+      (id) => id > 0,
     ).length;
     const testCount = Object.values(this.mappings).filter(
-      (id) => id < 0
+      (id) => id < 0,
     ).length;
     return `${regularCount}個の通常記事, ${testCount}個のテスト記事`;
   }
@@ -234,7 +234,7 @@ function main(): void {
     post.categories.forEach((category) => allCategories.add(category));
   });
 
-  console.log(`🏷️  ${allTags.size}個のタグを発見しました`);
+  console.log(`🏷️ ${allTags.size}個のタグを発見しました`);
   console.log(`📁 ${allCategories.size}個のカテゴリを発見しました\n`);
 
   // IDマッパーを初期化

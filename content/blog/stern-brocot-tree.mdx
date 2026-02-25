@@ -1,6 +1,7 @@
 ---
 title: Stern-Brocot tree
-date: '2025-10-10'
+date: '2025-10-10T00:00:00+09:00'
+description: Stern-Brocot treeについて
 excerpt: Stern-Brocot treeについての解説
 categories:
   - 数学
@@ -9,7 +10,8 @@ tags:
   - 数学
   - データ構造
   - Stern-Brocot tree
-lastUpdated: '2026-02-23T22:51:04.079Z'
+lastUpdated: '2025-10-10T00:00:00+09:00'
+contentHash: 786991fc59985dad1424e566cec4f80715a8c857e44d457c25c384dc3cd107e0
 ---
 
 ## はじめに
@@ -390,21 +392,21 @@ $$
 </Proof>
 
 <Corollary id="cor:open-intervals-of-sbt">
-　Stern-Brocot treeの各ノード $(a, b, c, d)$ について，自分自身とその子孫に対応する有理数全体は，$(a/b, c/d)$ の開区間になる．
+　Stern-Brocot treeの各ノード $(a, b, c, d)$ について，自分自身とその子孫に対応する有理数全体は，$(a/b, c/d) \cap \mathbf Q$ になる．
 </Corollary>
 <Proof>
 　帰納法で示す．根では <LabelRef id="cor:all-positive-rationals-are-in-sbt"/> より成り立つ．ノード $(a, b, c, d)$ について成り立つとする．左の子 $(a, b, a+c, b+d)$ 自身とその子孫に対応する有理数全体を $S_L$，右の子 $(a+c, b+d, c, d)$ 自身とその子孫に対応する有理数全体を $S_R$ とおく．帰納法の仮定より，
 
 $$
 \begin{align*}
-  S_L &\subset \left(\dfrac ab, \dfrac{a+c}{b+d}\right), \\
-  S_R &\subset \left(\dfrac{a+c}{b+d}, \dfrac cd\right) ,\\
-  S_L \cup \left\{\dfrac{a+c}{b+d}\right\} \cup S_R &= \left(\dfrac ab, \dfrac cd\right).
+  S_L &\subset \left(\dfrac ab, \dfrac{a+c}{b+d}\right) \cap \mathbf Q, \\
+  S_R &\subset \left(\dfrac{a+c}{b+d}, \dfrac cd\right) \cap \mathbf Q,\\
+  S_L \cup \left\{\dfrac{a+c}{b+d}\right\} \cup S_R &= \left(\dfrac ab, \dfrac cd\right) \cap \mathbf Q.
 \end{align*}
 
 $$
 
-よって，$S_L = (a/b, (a+c)/(b+d)), S_R = ((a+c)/(b+d), c/d)$ である．
+よって，$S_L = (a/b, (a+c)/(b+d)) \cap \mathbf Q, S_R = ((a+c)/(b+d), c/d) \cap \mathbf Q$ である．
 
 </Proof>
 
@@ -459,11 +461,17 @@ Encode Pathをして，$k$ 文字目までを取り出せば良いです．あ�
 この単調性から次のようにすれば問題を解くことができます：
 
 1. $l = 0/1$, $r = 1/0$，ノード $v$ は根とする．また，$v$ に対応する有理数を常に，$a/b$ と書く．
-3. 右に進んだあと，$\max\{a, b\} \le N$ なら右に進み，$l$ を元の $a/b$ に置き換える．そうでないなら，7.にいく．
-4. $x/y < a/b$ なら，5.にいく．そうでないなら，4.にいく．
-5. 左に進んだあと，$\max\{a, b\} \le N$ なら左に進み，$r$ を元の $a/b$ に置き換える．そうでないなら，7.にいく．
-6. $a/b \le x/y$ なら，3.にいく．そうでないなら，5.にいく．
-7. $l = x/y$ なら，$r = l$ として，答えは，$l, r$ です．
+2. 右に進んだあと，$\max\{a, b\} \le N$ なら右に進み，$l$ を元の $a/b$ に置き換える．そうでないなら，6.にいく．
+3. $x/y < a/b$ なら，4.にいく．そうでないなら，2.にいく．
+4. 左に進んだあと，$\max\{a, b\} \le N$ なら左に進み，$r$ を元の $a/b$ に置き換える．そうでないなら，6.にいく．
+5. $a/b \le x/y$ なら，2.にいく．そうでないなら，4.にいく．
+6. $l = x/y$ なら，$r = l$ として，答えは，$l, r$ です．
+
+以下のフローチャートは、このアルゴリズムを視覚化したものです：
+
+<div style={{ width: '100%', display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
+  <embed src="/stern-brocot-tree/rational_approximation_flowchart.pdf" type="application/pdf" width="100%" height="800px" />
+</div>
 
 2.と3.（4.と5.）のステップは指数探索をすることで効率化することができます<FootnoteRef id="fn:rational-approximation-exponential-search">[abc294の解説](https://atcoder.jp/contests/abc294/editorial/6017)に詳しく載っています．</FootnoteRef>．
 

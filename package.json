@@ -5,6 +5,7 @@
   "scripts": {
     "generate-ids": "tsx scripts/generate-ids.ts",
     "create-mdx": "tsx scripts/create-mdx.ts",
+    "validate-mdx": "tsx scripts/validate-mdx.ts",
     "predev": "npm run generate-ids",
     "dev": "next dev",
     "prebuild": "npm run generate-ids",
@@ -56,6 +57,8 @@
     "wrangler": "^4.30.0"
   },
   "lint-staged": {
-    "content/**/*.mdx": "npx tsx scripts/update-mdx-metadata.ts"
+    "content/**/*.mdx": [
+      "npx tsx scripts/update-mdx-metadata.ts"
+    ]
   }
 }

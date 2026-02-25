@@ -10,5 +10,36 @@
   "files.associations": {
     // MDXの拡張機能がもっと賢かったらいいのにな
     "*.mdx": "markdown"
-  }
+  },
+  "latex-workshop.latex.tools": [
+    {
+      "name": "LuaLaTeX",
+      "command": "latexmk",
+      "args": [
+        "-f",
+        "-gg",
+        "-lualatex",
+        "-file-line-error",
+        "-outdir=%OUTDIR%",
+        "%DOC%"
+      ]
+    },
+    {
+      "name": "move-pdf",
+      "command": "powershell",
+      "args": [
+        "-Command",
+        "Move-Item",
+        "%DOCFILE%.pdf",
+        "../%DOCFILE%.pdf",
+        "-Force"
+      ]
+    }
+  ],
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "latexmk + move",
+      "tools": ["LuaLaTeX", "move-pdf"]
+    }
+  ]
 }

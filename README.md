@@ -58,6 +58,13 @@
 │   │   ├── blog.ts          # 記事管理関数
 │   │   └── hash.ts          # SHA-256ハッシュ化ユーティリティ
 │   └── index.ts             # Cloudflare Workers エントリーポイント
+├── scripts/                 # スクリプト
+│   ├── lib/                 # 共通ユーティリティ
+│   │   └── mdx-utils.ts     # MDX関連の共通関数
+│   ├── create-mdx.ts        # MDXファイル作成
+│   ├── update-mdx-metadata.ts # メタデータ更新
+│   ├── validate-mdx.ts      # MDXバリデーション
+│   └── migrate-mdx-dates.ts # 日付マイグレーション
 ├── content/
 │   └── blog/                # MDX記事ファイル
 └── public/                  # 静的ファイル
@@ -80,14 +87,63 @@
 新しいブログ記事やページを簡単に作成できるテンプレート生成スクリプトを用意しています。
 
 ```bash
-# 基本的な使い方
-npm run create-mdx -- --title "記事タイトル"
-
-# カテゴリとタグを指定
-npm run create-mdx -- -t "新記事" -c "カテゴリ1,カテゴリ2" --tags "タグ1,タグ2"
+# ブログ記事を作成
+npm run create-mdx -- --slug my-article
+npm run create-mdx -- -s stern-brocot-tree
 
 # ページを作成
-npm run create-mdx -- --type page --title "新しいページ"
+npm run create-mdx -- --slug about --type page
 ```
 
+**作成後の手順:**
+
+1. 生成されたMDXファイルを開く
+2. `title`, `description`, `excerpt`, `categories`, `tags` を編集
+3. コンテンツを記述
+4. `npm run dev` で確認
+
 詳しい使い方は [docs/create-mdx-guide.md](docs/create-mdx-guide.md) を参照してください。
+
+### MDX バリデーション
+
+MDXファイルが正しいフォーマットと必須フィールドを持っているかチェックできます。
+
+```bash
+# すべてのMDXファイルをバリデーション
+npm run validate-mdx
+```
+
+**チェック項目:**
+
+- 必須フィールドの存在確認（title, date, description, excerpt, categories, tags, lastUpdated, contentHash）
+- date と lastUpdated がタイムゾーン付きISO8601形式か
+- contentHash が現在のコンテンツと一致するか
+
+### 自動更新とCI/CD
+
+**pre-commitフック:**
+
+コミット時に自動実行される処理：
+1. ステージングされたMDXファイルのメタデータを自動フォーマット（フィールドの順序を標準化）
+2. コンテンツが変更された場合、`lastUpdated` と `contentHash` を自動更新
+3. 更新されたファイルを自動的に再ステージング
+4. すべてのMDXファイルをバリデーション（エラーがある場合はコミットを中断）
+
+**GitHub Actions CI:**
+
+- MDXファイルのバリデーション
+- ESLintチェック
+- ビルド確認
+
+すべてのチェックが通過しないとマージできません。
+
+### 共通ユーティリティ (scripts/lib/mdx-utils.ts)
+
+MDX関連スクリプトで共通して使用される関数群：
+
+- `calculateHash(content)` - コンテンツのSHA256ハッシュを計算
+- `getCurrentDateISO()` - タイムゾーン付きISO8601形式の現在日時を取得
+- `isISOWithTimezone(dateString)` - 日付文字列がISO8601形式かチェック
+- `convertDateToISO(dateString)` - 日付文字列をISO8601形式に変換
+
+これらの関数は各スクリプト（create-mdx, update-mdx-metadata, validate-mdx, migrate-mdx-dates）で共通利用されています。

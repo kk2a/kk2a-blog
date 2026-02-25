@@ -3,6 +3,8 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import matter from "gray-matter";
+import { calculateHash, getCurrentDateISO } from "./lib/mdx-utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,11 +17,7 @@ const pagesDir = path.join(projectRoot, "content", "pages");
 // コマンドライン引数の解析
 function parseArgs(): {
   type: "blog" | "page";
-  title: string;
-  slug?: string;
-  categories?: string[];
-  tags?: string[];
-  excerpt?: string;
+  slug: string;
 } {
   const args = process.argv.slice(2);
 
@@ -28,66 +26,35 @@ function parseArgs(): {
 MDXテンプレート作成スクリプト
 
 使用方法:
-  npm run create-mdx -- --title "記事タイトル" [オプション]
+  npm run create-mdx -- --slug <slug> [オプション]
 
 オプション:
-  --title, -t <title>          記事タイトル（必須）
-  --type <blog|page>           タイプ（デフォルト: blog）
-  --slug, -s <slug>            ファイル名（デフォルト: タイトルから自動生成）
-  --categories, -c <cat1,cat2> カテゴリ（カンマ区切り、blogのみ）
-  --tags <tag1,tag2>           タグ（カンマ区切り、blogのみ）
-  --excerpt, -e <excerpt>      抜粋文（blogのみ）
-  --help, -h                   このヘルプを表示
+  --slug, -s <slug>   ファイル名（必須）
+  --type <blog|page>  タイプ（デフォルト: blog）
+  --help, -h          このヘルプを表示
 
 例:
-  # 基本的な使い方
-  npm run create-mdx -- --title "新しい記事"
-  
-  # カテゴリとタグを指定
-  npm run create-mdx -- -t "Stern-Brocot tree" -c "数学,データ構造" --tags "数学,アルゴリズム"
+  # ブログ記事を作成
+  npm run create-mdx -- --slug my-article
+  npm run create-mdx -- -s stern-brocot-tree
   
   # ページを作成
-  npm run create-mdx -- --type page --title "プライバシーポリシー"
-  
-  # スラッグを指定
-  npm run create-mdx -- -t "新記事" -s "my-custom-slug"
+  npm run create-mdx -- --slug about --type page
+
+注意:
+  title, categories, tags, excerpt は作成後に直接MDXファイルを編集してください。
 `);
     process.exit(0);
   }
 
   let type: "blog" | "page" = "blog";
-  let title = "";
-  let slug: string | undefined;
-  let categories: string[] | undefined;
-  let tags: string[] | undefined;
-  let excerpt: string | undefined;
+  let slug = "";
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     const nextArg = args[i + 1];
 
     switch (arg) {
-      case "--title":
-      case "-t":
-        if (!nextArg) {
-          console.error("エラー: --title にはタイトルが必要です");
-          process.exit(1);
-        }
-        title = nextArg;
-        i++;
-        break;
-
-      case "--type":
-        if (nextArg !== "blog" && nextArg !== "page") {
-          console.error(
-            "エラー: --type は blog または page である必要があります"
-          );
-          process.exit(1);
-        }
-        type = nextArg;
-        i++;
-        break;
-
       case "--slug":
       case "-s":
         if (!nextArg) {
@@ -98,32 +65,14 @@ MDXテンプレート作成スクリプト
         i++;
         break;
 
-      case "--categories":
-      case "-c":
-        if (!nextArg) {
-          console.error("エラー: --categories にはカテゴリが必要です");
+      case "--type":
+        if (nextArg !== "blog" && nextArg !== "page") {
+          console.error(
+            "エラー: --type は blog または page である必要があります",
+          );
           process.exit(1);
         }
-        categories = nextArg.split(",").map((c) => c.trim());
-        i++;
-        break;
-
-      case "--tags":
-        if (!nextArg) {
-          console.error("エラー: --tags にはタグが必要です");
-          process.exit(1);
-        }
-        tags = nextArg.split(",").map((t) => t.trim());
-        i++;
-        break;
-
-      case "--excerpt":
-      case "-e":
-        if (!nextArg) {
-          console.error("エラー: --excerpt には抜粋文が必要です");
-          process.exit(1);
-        }
-        excerpt = nextArg;
+        type = nextArg;
         i++;
         break;
 
@@ -134,80 +83,54 @@ MDXテンプレート作成スクリプト
     }
   }
 
-  if (!title) {
-    console.error("エラー: --title は必須です");
+  if (!slug) {
+    console.error("エラー: --slug は必須です");
     console.error("ヘルプを表示するには --help を使用してください");
     process.exit(1);
   }
 
-  return { type, title, slug, categories, tags, excerpt };
-}
-
-// スラッグ生成（タイトルから）
-function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "") // 英数字、スペース、ハイフン以外を削除
-    .replace(/\s+/g, "-") // スペースをハイフンに
-    .replace(/-+/g, "-") // 連続するハイフンを一つに
-    .trim();
-}
-
-// 現在の日付を YYYY-MM-DD 形式で取得
-function getCurrentDate(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return { type, slug };
 }
 
 // ブログ記事のテンプレート
-function generateBlogTemplate(
-  title: string,
-  categories: string[] = [],
-  tags: string[] = [],
-  excerpt?: string
-): string {
-  const date = getCurrentDate();
-  const defaultExcept = excerpt || `${title}についての記事`;
+function generateBlogTemplate(): string {
+  const date = getCurrentDateISO();
 
-  return `---
-title: "${title}"
-date: "${date}"
-excerpt: "${defaultExcept}"
-categories: [${categories.map((c) => `"${c}"`).join(", ")}]
-tags: [${tags.map((t) => `"${t}"`).join(", ")}]
----
+  const content = `\n\n<FootnoteList />\n\n<ReferenceList />`;
+  const contentHash = calculateHash(content);
 
+  const frontMatter = {
+    title: "記事タイトル",
+    date,
+    description: "記事の説明（SEO用）",
+    excerpt: "記事の概要を記述してください",
+    categories: ["カテゴリ1", "カテゴリ2"],
+    tags: ["タグ1", "タグ2"],
+    lastUpdated: date,
+    contentHash,
+  };
 
-<FootnoteList />
-
-<ReferenceList />
-`;
+  return matter.stringify(content, frontMatter);
 }
 
 // ページのテンプレート
-function generatePageTemplate(title: string): string {
-  return `---
-title: "${title}"
----
+function generatePageTemplate(): string {
+  const date = getCurrentDateISO();
+  const content = `\n# ページタイトル\n\n（ここにページの内容を記述）\n`;
+  const contentHash = calculateHash(content);
 
-# ${title}
+  const frontMatter = {
+    title: "ページタイトル",
+    description: "ページの説明（SEO用）",
+    lastUpdated: date,
+    contentHash,
+  };
 
-（ここにページの内容を記述）
-`;
+  return matter.stringify(content, frontMatter);
 }
 
 // ファイル作成
-function createMdxFile(
-  type: "blog" | "page",
-  title: string,
-  slug: string,
-  categories?: string[],
-  tags?: string[],
-  excerpt?: string
-): void {
+function createMdxFile(type: "blog" | "page", slug: string): void {
   const targetDir = type === "blog" ? blogDir : pagesDir;
   const filePath = path.join(targetDir, `${slug}.mdx`);
 
@@ -219,44 +142,21 @@ function createMdxFile(
 
   // テンプレート生成
   const content =
-    type === "blog"
-      ? generateBlogTemplate(title, categories, tags, excerpt)
-      : generatePageTemplate(title);
+    type === "blog" ? generateBlogTemplate() : generatePageTemplate();
 
   // ファイル書き込み
   fs.writeFileSync(filePath, content, "utf-8");
 
-  console.log(`✓ MDXファイルを作成しました: ${filePath}`);
-  console.log(`
-次のステップ:
-1. エディタで ${slug}.mdx を開く
-2. コンテンツを編集
-3. npm run dev で確認
-`);
+  console.log(`✅ MDXファイルを作成しました: ${filePath}`);
 }
 
 // メイン処理
 function main() {
   try {
-    const {
-      type,
-      title,
-      slug: customSlug,
-      categories,
-      tags,
-      excerpt,
-    } = parseArgs();
-
-    // スラッグ生成
-    const slug = customSlug || generateSlug(title);
-
-    if (!slug) {
-      console.error("エラー: スラッグを生成できませんでした");
-      process.exit(1);
-    }
+    const { type, slug } = parseArgs();
 
     // ファイル作成
-    createMdxFile(type, title, slug, categories, tags, excerpt);
+    createMdxFile(type, slug);
   } catch (error) {
     console.error("エラー:", error instanceof Error ? error.message : error);
     process.exit(1);
