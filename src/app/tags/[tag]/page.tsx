@@ -1,4 +1,4 @@
-import { getAllTagIds, getPostsByTag, getTagFromId } from "@/lib/blog";
+import { getAllTagIds, getPublicPostsByTag, getTagFromId } from "@/lib/blog";
 import BlogCard from "@/components/BlogCard";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
@@ -58,7 +58,7 @@ export default async function TagPage({ params }: Props) {
     );
   }
 
-  const posts = getPostsByTag(originalTag);
+  const posts = getPublicPostsByTag(originalTag);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

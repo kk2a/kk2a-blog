@@ -1,6 +1,6 @@
 import {
   getAllCategoryIds,
-  getPostsByCategory,
+  getPublicPostsByCategory,
   getCategoryFromId,
 } from "@/lib/blog";
 import BlogCard from "@/components/BlogCard";
@@ -62,7 +62,7 @@ export default async function CategoryPage({ params }: Props) {
     );
   }
 
-  const posts = getPostsByCategory(originalCategory);
+  const posts = getPublicPostsByCategory(originalCategory);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

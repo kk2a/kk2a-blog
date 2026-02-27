@@ -195,22 +195,6 @@ export default async function BlogPostById({ params }: Props) {
           </aside>
         </div>
 
-        {/* 最終更新日 */}
-        {post.lastUpdated && (
-          <div className="mt-12 pt-6 border-t border-theme-border">
-            <div className="text-sm text-theme-3">
-              <span className="mr-2">最終更新:</span>
-              <time dateTime={post.lastUpdated}>
-                {new Date(post.lastUpdated).toLocaleDateString("ja-JP", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </time>
-            </div>
-          </div>
-        )}
-
         {/* ナビゲーション */}
         <nav className="mt-16 pt-8 border-t border-theme-border">
           <div className="flex flex-wrap gap-4">

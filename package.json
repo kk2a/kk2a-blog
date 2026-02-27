@@ -13,6 +13,7 @@
     "start": "next start",
     "lint": "next lint",
     "deploy": "next build && npx wrangler deploy",
+    "predeploy": "npm run generate-ids",
     "preview": "next build && npx wrangler dev",
     "prepare": "husky"
   },

@@ -44,6 +44,11 @@ export function getAllPosts(): BlogPost[] {
   return allPosts;
 }
 
+// 一覧表示用: テスト記事を除外
+export function getPublicPosts(): BlogPost[] {
+  return getAllPosts().filter((post) => !post.slug.startsWith("test-"));
+}
+
 export function getPostBySlug(slug: string): BlogPost | null {
   const filePath = path.join(contentDirectory, `${slug}.mdx`);
 
@@ -66,14 +71,33 @@ export function getPostBySlug(slug: string): BlogPost | null {
   };
 }
 
-export function getPostsByCategory(category: string): BlogPost[] {
+export function getPublicPostsByCategory(category: string): BlogPost[] {
+  const allPosts = getPublicPosts();
+  return allPosts.filter((post) => post.categories.includes(category));
+}
+
+export function getAllPostsByCategory(category: string): BlogPost[] {
   const allPosts = getAllPosts();
   return allPosts.filter((post) => post.categories.includes(category));
 }
 
-export function getPostsByTag(tag: string): BlogPost[] {
+export function getPublicPostsByTag(tag: string): BlogPost[] {
+  const allPosts = getPublicPosts();
+  return allPosts.filter((post) => post.tags.includes(tag));
+}
+
+export function getAllPostsByTag(tag: string): BlogPost[] {
   const allPosts = getAllPosts();
   return allPosts.filter((post) => post.tags.includes(tag));
+}
+
+export function getPublicCategories(): string[] {
+  const allPosts = getPublicPosts();
+  const categories = new Set<string>();
+  allPosts.forEach((post) => {
+    post.categories.forEach((category) => categories.add(category));
+  });
+  return Array.from(categories);
 }
 
 export function getAllCategories(): string[] {
@@ -83,6 +107,15 @@ export function getAllCategories(): string[] {
     post.categories.forEach((category) => categories.add(category));
   });
   return Array.from(categories);
+}
+
+export function getPublicTags(): string[] {
+  const allPosts = getPublicPosts();
+  const tags = new Set<string>();
+  allPosts.forEach((post) => {
+    post.tags.forEach((tag) => tags.add(tag));
+  });
+  return Array.from(tags);
 }
 
 export function getAllTags(): string[] {

@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { getAllPosts } from "@/lib/blog";
+import { getPublicPosts } from "@/lib/blog";
 import BlogCard from "@/components/BlogCard";
 import { siteConfig } from "@/config/site";
 
 export default function Home() {
-  const posts = getAllPosts().reverse().slice(0, siteConfig.blog.postsPerPage); // 新しい記事を最初に表示
+  const posts = getPublicPosts()
+    .reverse()
+    .slice(0, siteConfig.blog.postsPerPage); // 新しい記事を最初に表示
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
