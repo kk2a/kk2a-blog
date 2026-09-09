@@ -8,10 +8,8 @@ import { ReferenceProvider } from "@/components/mdx/Reference";
 import { MathProvider } from "@/components/mdx/MathComponents";
 import { TableOfContents } from "@/components/TableOfContents";
 import { siteConfig } from "@/config/site";
-import remarkGfm from "remark-gfm";
 import TopicList from "@/components/TopicList";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
+import { blogMdxOptions } from "@/lib/mdx-options";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -171,12 +169,7 @@ export default async function BlogPostById({ params }: Props) {
                     <MDXRemote
                       source={post.content}
                       components={mdxComponents}
-                      options={{
-                        mdxOptions: {
-                          remarkPlugins: [remarkGfm, remarkMath],
-                          rehypePlugins: [rehypeKatex],
-                        },
-                      }}
+                      options={blogMdxOptions}
                     />
                   </div>
                 </MathProvider>
