@@ -84,20 +84,32 @@ export const ReferenceRef: React.FC<{
     useState<React.ReactNode>(null);
 
   useEffect(() => {
-    // 対応する Reference コンポーネントの内容を探す
-    const referenceData = references.find((ref) => ref.id === id);
-    if (referenceData) {
-      const number = addReference(id, referenceData.content);
-      setRefNumber(number);
-      setReferenceContent(referenceData.content);
-    } else {
-      // Reference が見つからない場合の警告
-      console.warn(
-        `Reference with id "${id}" not found. Make sure to define it with <Reference id="${id}" ... />`
-      );
-      setRefNumber(0);
-      setReferenceContent(null);
-    }
+    // Reference 定義も useEffect で登録されるため、同じ描画サイクル内で
+    // 定義が登録されるのを待ってから未定義かどうかを判定する。
+    let cancelled = false;
+    const timeoutId = window.setTimeout(() => {
+      if (cancelled) {
+        return;
+      }
+
+      const referenceData = references.find((ref) => ref.id === id);
+      if (referenceData) {
+        const number = addReference(id, referenceData.content);
+        setRefNumber(number);
+        setReferenceContent(referenceData.content);
+      } else {
+        console.warn(
+          `Reference with id "${id}" not found. Make sure to define it with <Reference id="${id}" ... />`
+        );
+        setRefNumber(0);
+        setReferenceContent(null);
+      }
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
   }, [id, addReference, references]);
 
   if (refNumber === 0) {
