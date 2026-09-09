@@ -1,9 +1,10 @@
 "use client";
 
 import { Copy, Check } from "lucide-react";
-import { ReactNode, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { getCodeText } from "./code-content";
 
 interface CodeBlockProps {
   children: ReactNode;
@@ -20,14 +21,7 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
   };
 
   // 表示・コピー用のコード取得
-  const getCode = () => {
-    const code =
-      typeof children === "string"
-        ? children
-        : (children as { props?: { children?: string } })?.props?.children ||
-          "";
-    return processCode(code);
-  };
+  const getCode = () => processCode(getCodeText(children));
 
   const handleCopy = async () => {
     const processedCode = getCode();
