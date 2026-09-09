@@ -13,7 +13,10 @@ export interface BlogPost {
   lastUpdated?: string;
   excerpt: string;
   content: string;
+  topics: string[];
+  /** @deprecated Use topics. Kept while old URLs are migrated. */
   categories: string[];
+  /** @deprecated Use topics. Kept while old URLs are migrated. */
   tags: string[];
 }
 
@@ -59,6 +62,9 @@ export function getPostBySlug(slug: string): BlogPost | null {
   const fileContents = fs.readFileSync(filePath, "utf8");
   const { data, content } = matter(fileContents);
 
+  const categories = Array.isArray(data.categories) ? data.categories : [];
+  const tags = Array.isArray(data.tags) ? data.tags : [];
+
   return {
     slug,
     title: data.title || "",
@@ -66,9 +72,26 @@ export function getPostBySlug(slug: string): BlogPost | null {
     lastUpdated: data.lastUpdated || undefined,
     excerpt: data.excerpt || "",
     content,
-    categories: data.categories || [],
-    tags: data.tags || [],
+    topics: [...new Set([...categories, ...tags])],
+    categories,
+    tags,
   };
+}
+
+export function getPublicPostsByTopic(topic: string): BlogPost[] {
+  return getPublicPosts().filter((post) => post.topics.includes(topic));
+}
+
+export function getAllPostsByTopic(topic: string): BlogPost[] {
+  return getAllPosts().filter((post) => post.topics.includes(topic));
+}
+
+export function getPublicTopics(): string[] {
+  return [...new Set(getPublicPosts().flatMap((post) => post.topics))].sort();
+}
+
+export function getAllTopics(): string[] {
+  return [...new Set(getAllPosts().flatMap((post) => post.topics))].sort();
 }
 
 export function getPublicPostsByCategory(category: string): BlogPost[] {

@@ -1,0 +1,19 @@
+{
+  "name": "@kk2a/blog-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --config ../../wrangler.jsonc",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "wrangler d1 migrations apply kk2a-blog --local --config ../../wrangler.jsonc",
+    "db:migrate:remote": "wrangler d1 migrations apply kk2a-blog --remote --config ../../wrangler.jsonc"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.126.0"
+  }
+}

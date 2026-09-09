@@ -10,15 +10,15 @@ tags:
   - 数学
   - データ構造
   - Stern-Brocot tree
-lastUpdated: '2026-02-25T22:33:05+09:00'
-contentHash: 4528e9084c12c4b2c4323d6cca31a84f925978d66b51f8c0ba0edecbbfcd7f90
+lastUpdated: '2026-09-09T16:05:49+09:00'
+contentHash: 1013c52abaa3c3d27506d74d4fdc3e5106e9a4c72e2e0d7beacac8d57513942b
 ---
 
 ## はじめに
 　この記事では，Stern-Brocot treeについて解説します．前提知識は以下を参照してください．
 
 - $\mathrm{mod}$ 計算ができる．
-- 剰余の原理を知っている．
+- 除法の原理を知っている．
 - 行列の基本的な演算，逆行列を求めることができる．（まったく知らない状態でも問題ないと思います．）
 - $O$記法を知っている．
 
@@ -120,6 +120,8 @@ $$
 <Proof>
 　$\gcd(x, y) \mid \gcd(x + ky, y)$ は明らか．$g = \gcd(x + ky, y)$ とおく．$x$ を $g$ で割ったあまりを $r$ とおくと，$x + ky$ を $g$ で割ったあまりは $r$ であるから，$r = 0$．とくに，${g = \gcd(x + ky, y) \mid \gcd(x, y)}$ である．
 </Proof>
+
+（2026/04/21追記）上の証明では，$\gcd$ という一般的な概念に対して必要以上の道具（除法の原理）を用いています．$\gcd$ が定義できるような整域でも上の事実は成り立つので，変な証明になっているかもしれません．気になる方は，[AtCoder Algorithm Lectures の記事](https://info.atcoder.jp/entry/algorithm_lectures/euclidean_algorithm)の命題2の証明を参考にしてみてください．
 
 
 <Lemma id="lem:matrix-representation-of-continued-frac">
@@ -469,8 +471,8 @@ Encode Pathをして，$k$ 文字目までを取り出せば良いです．あ�
 
 以下のフローチャートは、このアルゴリズムを視覚化したものです：
 
-<div style={{ width: '100%', display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
-  <embed src="/stern-brocot-tree/rational_approximation_flowchart.pdf" type="application/pdf" width="100%" height="800px" />
+<div style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
+  <embed src="/stern-brocot-tree/rational_approximation_flowchart.pdf" type="application/pdf" height="550px" width="100%"/>
 </div> 
 
 2.と3.（4.と5.）のステップは指数探索をすることで効率化することができます<FootnoteRef id="fn:rational-approximation-exponential-search">[abc294の解説](https://atcoder.jp/contests/abc294/editorial/6017)に詳しく載っています．</FootnoteRef>．
