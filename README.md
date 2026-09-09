@@ -70,6 +70,7 @@
 │   ├── lib/                 # 共通ユーティリティ
 │   │   └── mdx-utils.ts     # MDX関連の共通関数
 │   ├── create-mdx.ts        # MDXファイル作成
+│   ├── sync-id-mappings.ts  # D1のIDを静的ビルド用に同期
 │   ├── update-mdx-metadata.ts # メタデータ更新
 │   ├── validate-mdx.ts      # MDXバリデーション
 │   └── migrate-mdx-dates.ts # 日付マイグレーション
@@ -98,13 +99,15 @@
 pnpm install
 pnpm dev                 # Next.js 開発サーバー
 pnpm check               # formatter / linter / typecheck / test / MDX validation
-pnpm build               # 静的 assets を生成
+pnpm build               # ローカルD1を同期して静的 assets を生成
 pnpm test                # backend test
 ```
 
 ### MDX と D1 の責務
 
 記事本文と画像などのコンテンツは、引き続き `content/blog/*.mdx` と Git で管理します。記事の公開状態、表示用メタデータ、topics の初期データは D1 の `posts` / `topics` / `post_topics` に保存します。
+
+記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。公開・下書きの判定はIDの値ではなく `posts.status` を使います。
 
 既存 MDX から初期データを再生成する場合は次を実行します。これは初期 migration の更新用であり、適用済みの本番 DB を自動上書きするコマンドではありません。
 
@@ -185,7 +188,7 @@ pnpm validate-mdx
 - backend API の Vitest test
 - ビルド確認
 
-`main` への push で `deploy.yml` が起動し、build → D1 migration → Worker deploy を順番に実行します。
+`main` への push で `deploy.yml` が起動し、D1 migration → remote D1からID同期を含むbuild → Worker deploy を順番に実行します。
 
 ### 共通ユーティリティ (scripts/lib/mdx-utils.ts)
 

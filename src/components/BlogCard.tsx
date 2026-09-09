@@ -8,7 +8,7 @@ interface BlogCardProps {
 
 export default function BlogCard({ post }: BlogCardProps) {
   const blogId = getBlogId(post.slug);
-  const isTestPost = blogId < 0;
+  const isTestPost = post.status === "draft";
 
   return (
     <article className="rounded-lg shadow-sm transition duration-200 overflow-hidden hover:shadow-md border border-theme-border">

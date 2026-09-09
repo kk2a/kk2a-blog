@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props) {
     };
   }
 
-  const isTestPost = blogId < 0;
+  const isTestPost = post.status === "draft";
   const titleSuffix = isTestPost ? " [テスト]" : "";
 
   return {
@@ -66,7 +66,7 @@ export default async function BlogPostById({ params }: Props) {
     notFound();
   }
 
-  const isTestPost = blogId < 0;
+  const isTestPost = post.status === "draft";
 
   // MDXコンテンツから見出しを抽出
   let headingSelectors = [1, 2, 3, 4, 5, 6]

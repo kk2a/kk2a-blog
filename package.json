@@ -7,13 +7,14 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "generate-ids": "tsx scripts/generate-ids.ts",
+    "db:migrate:local": "pnpm --filter @kk2a/blog-api db:migrate:local",
+    "sync-id-mappings": "tsx scripts/sync-id-mappings.ts",
     "create-mdx": "tsx scripts/create-mdx.ts",
     "validate-mdx": "tsx scripts/validate-mdx.ts",
     "content:export": "tsx scripts/export-content-sql.ts",
-    "predev": "pnpm generate-ids",
+    "predev": "pnpm db:migrate:local && pnpm sync-id-mappings",
     "dev": "next dev",
-    "prebuild": "pnpm generate-ids",
+    "prebuild": "pnpm db:migrate:local && pnpm sync-id-mappings",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "biome check .",
@@ -26,7 +27,6 @@
     "test": "pnpm --filter @kk2a/blog-api test",
     "check": "pnpm types && pnpm types:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm --filter @kk2a/blog-api typecheck && pnpm validate-mdx && pnpm test",
     "deploy": "pnpm build && pnpm --filter @kk2a/blog-api db:migrate:remote && pnpm exec wrangler deploy",
-    "predeploy": "pnpm generate-ids",
     "preview": "pnpm build && pnpm exec wrangler dev",
     "prepare": "husky"
   },

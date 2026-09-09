@@ -5,6 +5,7 @@
       "apps/api/**/*.ts",
       "!apps/api/src/worker-configuration.d.ts",
       "scripts/export-content-sql.ts",
+      "scripts/sync-id-mappings.ts",
       "biome.jsonc"
     ],
     "ignoreUnknown": true
