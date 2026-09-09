@@ -101,9 +101,10 @@ tags: [MDX, SQLite]
 
   it("moves an existing positive test ID to a negative ID", () => {
     expect(
-      assignPostIds([currentPost("test-migrated")], [
-        existingPost("test-migrated", 7),
-      ]),
+      assignPostIds(
+        [currentPost("test-migrated")],
+        [existingPost("test-migrated", 7)],
+      ),
     ).toEqual(new Map([["test-migrated", -1]]));
   });
 
