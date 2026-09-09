@@ -48,6 +48,4 @@ next-env.d.ts
 # build-time D1 ID mapping snapshot
 /data/
 
-# generated D1 seed SQL
-/apps/api/generated/
 /apps/api/src/worker-configuration.d.ts

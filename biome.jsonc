@@ -4,7 +4,9 @@
     "includes": [
       "apps/api/**/*.ts",
       "!apps/api/src/worker-configuration.d.ts",
-      "scripts/export-content-sql.ts",
+      "scripts/content-id-history.ts",
+      "scripts/prepare-content.ts",
+      "scripts/sync-content.ts",
       "scripts/sync-id-mappings.ts",
       "biome.jsonc"
     ],

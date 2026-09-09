@@ -1,14 +1,22 @@
+import { and, asc, count, desc, eq, exists, gt, inArray } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/d1";
+import { posts, postTopics, topics } from "./schema";
 import type { Post, PostRow, TopicRow } from "./types";
 
-const postSelect = `
-  SELECT
-    p.id, p.slug, p.title, p.date, p.description, p.excerpt,
-    p.last_updated, p.content_hash, p.content_path, p.status,
-    t.name AS topic_name, t.slug AS topic_slug
-  FROM posts AS p
-  LEFT JOIN post_topics AS pt ON pt.post_id = p.id
-  LEFT JOIN topics AS t ON t.id = pt.topic_id
-`;
+const postColumns = {
+  id: posts.id,
+  slug: posts.slug,
+  title: posts.title,
+  date: posts.date,
+  description: posts.description,
+  excerpt: posts.excerpt,
+  last_updated: posts.lastUpdated,
+  content_hash: posts.contentHash,
+  content_path: posts.contentPath,
+  status: posts.status,
+  topic_name: topics.name,
+  topic_slug: topics.slug,
+};
 
 function toPost(rows: PostRow[]): Post | null {
   const first = rows[0];
@@ -32,72 +40,123 @@ function toPost(rows: PostRow[]): Post | null {
   };
 }
 
+function toPostRows(
+  rows: Array<{
+    id: number;
+    slug: string;
+    title: string;
+    date: string;
+    description: string;
+    excerpt: string;
+    last_updated: string | null;
+    content_hash: string;
+    content_path: string;
+    status: "draft" | "published";
+    topic_name: string | null;
+    topic_slug: string | null;
+  }>,
+): PostRow[] {
+  return rows;
+}
+
 export async function listPosts(
-  db: D1Database,
+  database: D1Database,
   options: { topic?: string; limit: number; offset: number },
 ): Promise<{ posts: Post[]; total: number }> {
-  const conditions = ["p.status = 'published'"];
-  const params: string[] = [];
+  const db = drizzle(database);
+  const topicFilter = options.topic
+    ? exists(
+        db
+          .select({ postId: postTopics.postId })
+          .from(postTopics)
+          .innerJoin(topics, eq(topics.id, postTopics.topicId))
+          .where(
+            and(
+              eq(postTopics.postId, posts.id),
+              eq(topics.slug, options.topic),
+            ),
+          ),
+      )
+    : undefined;
+  const where = and(eq(posts.status, "published"), topicFilter);
 
-  if (options.topic) {
-    conditions.push(
-      "EXISTS (SELECT 1 FROM post_topics AS filter_pt JOIN topics AS filter_t ON filter_t.id = filter_pt.topic_id WHERE filter_pt.post_id = p.id AND filter_t.slug = ?)",
-    );
-    params.push(options.topic);
+  const [countRow] = await db
+    .select({ total: count(posts.id) })
+    .from(posts)
+    .where(where);
+  const selectedPosts = await db
+    .select({ id: posts.id })
+    .from(posts)
+    .where(where)
+    .orderBy(desc(posts.date), asc(posts.slug))
+    .limit(options.limit)
+    .offset(options.offset);
+  const selectedPostIds = selectedPosts.map((post) => post.id);
+  if (selectedPostIds.length === 0) {
+    return { posts: [], total: countRow?.total ?? 0 };
   }
 
-  const where = `WHERE ${conditions.join(" AND ")}`;
-  const count = await db
-    .prepare(`SELECT COUNT(*) AS total FROM posts AS p ${where}`)
-    .bind(...params)
-    .first<{ total: number }>();
   const rows = await db
-    .prepare(
-      `${postSelect} ${where} ORDER BY p.date DESC, p.slug ASC, t.name ASC LIMIT ? OFFSET ?`,
+    .select(postColumns)
+    .from(posts)
+    .leftJoin(postTopics, eq(postTopics.postId, posts.id))
+    .leftJoin(topics, eq(topics.id, postTopics.topicId))
+    .where(
+      and(eq(posts.status, "published"), inArray(posts.id, selectedPostIds)),
     )
-    .bind(...params, options.limit, options.offset)
-    .all<PostRow>();
+    .orderBy(desc(posts.date), asc(posts.slug), asc(topics.name));
 
-  const posts = new Map<number, PostRow[]>();
-  for (const row of rows.results) {
-    const existing = posts.get(row.id) ?? [];
+  const groupedPosts = new Map<number, PostRow[]>();
+  for (const row of toPostRows(rows)) {
+    const existing = groupedPosts.get(row.id) ?? [];
     existing.push(row);
-    posts.set(row.id, existing);
+    groupedPosts.set(row.id, existing);
   }
 
   return {
-    posts: [...posts.values()].flatMap((postRows) => {
+    posts: [...groupedPosts.values()].flatMap((postRows) => {
       const post = toPost(postRows);
       return post ? [post] : [];
     }),
-    total: count?.total ?? 0,
+    total: countRow?.total ?? 0,
   };
 }
 
 export async function findPost(
-  db: D1Database,
+  database: D1Database,
   slug: string,
 ): Promise<Post | null> {
+  const db = drizzle(database);
   const rows = await db
-    .prepare(`${postSelect} WHERE p.status = 'published' AND p.slug = ?`)
-    .bind(slug)
-    .all<PostRow>();
-  return toPost(rows.results);
+    .select(postColumns)
+    .from(posts)
+    .leftJoin(postTopics, eq(postTopics.postId, posts.id))
+    .leftJoin(topics, eq(topics.id, postTopics.topicId))
+    .where(and(eq(posts.status, "published"), eq(posts.slug, slug)))
+    .orderBy(asc(topics.name));
+
+  return toPost(toPostRows(rows));
 }
 
-export async function listTopics(db: D1Database): Promise<TopicRow[]> {
+export async function listTopics(database: D1Database): Promise<TopicRow[]> {
+  const db = drizzle(database);
+  const postCount = count(posts.id);
   const rows = await db
-    .prepare(
-      `
-        SELECT t.id, t.name, t.slug, COUNT(p.id) AS post_count
-        FROM topics AS t
-        LEFT JOIN post_topics AS pt ON pt.topic_id = t.id
-        LEFT JOIN posts AS p ON p.id = pt.post_id AND p.status = 'published'
-        GROUP BY t.id
-        HAVING post_count > 0
-        ORDER BY t.name COLLATE NOCASE ASC
-      `,
+    .select({
+      id: topics.id,
+      name: topics.name,
+      slug: topics.slug,
+      post_count: postCount,
+    })
+    .from(topics)
+    .leftJoin(postTopics, eq(postTopics.topicId, topics.id))
+    .leftJoin(
+      posts,
+      and(eq(posts.id, postTopics.postId), eq(posts.status, "published")),
     )
-    .all<TopicRow>();
-  return rows.results;
+    .groupBy(topics.id)
+    .having(gt(postCount, 0))
+    .orderBy(asc(topics.name));
+
+  return rows;
 }
