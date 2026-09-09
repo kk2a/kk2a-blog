@@ -9,8 +9,7 @@ import { MathProvider } from "@/components/mdx/MathComponents";
 import { TableOfContents } from "@/components/TableOfContents";
 import { siteConfig } from "@/config/site";
 import remarkGfm from "remark-gfm";
-import CategoryList from "@/components/CategoryList";
-import TagList from "@/components/TagList";
+import TopicList from "@/components/TopicList";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 
@@ -36,7 +35,7 @@ export async function generateMetadata({ params }: Props) {
     };
   }
 
-  const isTestPost = blogId < 0;
+  const isTestPost = post.status === "draft";
   const titleSuffix = isTestPost ? " [テスト]" : "";
 
   return {
@@ -67,7 +66,7 @@ export default async function BlogPostById({ params }: Props) {
     notFound();
   }
 
-  const isTestPost = blogId < 0;
+  const isTestPost = post.status === "draft";
 
   // MDXコンテンツから見出しを抽出
   let headingSelectors = [1, 2, 3, 4, 5, 6]
@@ -155,10 +154,9 @@ export default async function BlogPostById({ params }: Props) {
             </div>
           </div>
 
-          {/* カテゴリーとタグ */}
+          {/* トピック（旧カテゴリとタグを統合） */}
           <div className="flex flex-wrap gap-4 mb-8">
-            <CategoryList categories={post.categories} />
-            <TagList tags={post.tags} />
+            <TopicList topics={post.topics} />
           </div>
         </header>
 

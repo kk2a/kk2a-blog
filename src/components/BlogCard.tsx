@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { BlogPost, getBlogId } from "@/lib/blog";
-import CategoryList from "./CategoryList";
-import TagList from "./TagList";
+import TopicList from "./TopicList";
 
 interface BlogCardProps {
   post: BlogPost;
@@ -9,7 +8,7 @@ interface BlogCardProps {
 
 export default function BlogCard({ post }: BlogCardProps) {
   const blogId = getBlogId(post.slug);
-  const isTestPost = blogId < 0;
+  const isTestPost = post.status === "draft";
 
   return (
     <article className="rounded-lg shadow-sm transition duration-200 overflow-hidden hover:shadow-md border border-theme-border">
@@ -39,11 +38,8 @@ export default function BlogCard({ post }: BlogCardProps) {
 
         <p className="text-theme-3 mb-4 line-clamp-3">{post.excerpt}</p>
 
-        <div className="categories mb-4">
-          <CategoryList categories={post.categories} />
-        </div>
-        <div className="tags">
-          <TagList tags={post.tags} displayLimit={3} />
+        <div className="topics">
+          <TopicList topics={post.topics} displayLimit={3} />
         </div>
       </div>
     </article>

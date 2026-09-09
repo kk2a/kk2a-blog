@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+**/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -44,5 +45,9 @@ next-env.d.ts
 # cloudflare
 .wrangler/
 
-# auto-generated ID mappings
+# build-time D1 ID mapping snapshot
 /data/
+
+# generated D1 seed SQL
+/apps/api/generated/
+/apps/api/src/worker-configuration.d.ts

@@ -1,8 +1,16 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
-import { tagIdMapper, categoryIdMapper } from "./id-mapper";
-import { blogIdMapper } from "./blog-id-mapper";
+import {
+  getAllPostIds,
+  getAllTopicIds,
+  getAllTopicNames,
+  getPostId,
+  getPostSlug,
+  getPostStatus,
+  getTopicId,
+  getTopicName,
+} from "./id-mapping";
 
 const contentDirectory = path.join(process.cwd(), "content/blog");
 
@@ -13,7 +21,11 @@ export interface BlogPost {
   lastUpdated?: string;
   excerpt: string;
   content: string;
+  status: "draft" | "published";
+  topics: string[];
+  /** @deprecated Use topics. Kept while old URLs are migrated. */
   categories: string[];
+  /** @deprecated Use topics. Kept while old URLs are migrated. */
   tags: string[];
 }
 
@@ -59,6 +71,9 @@ export function getPostBySlug(slug: string): BlogPost | null {
   const fileContents = fs.readFileSync(filePath, "utf8");
   const { data, content } = matter(fileContents);
 
+  const categories = Array.isArray(data.categories) ? data.categories : [];
+  const tags = Array.isArray(data.tags) ? data.tags : [];
+
   return {
     slug,
     title: data.title || "",
@@ -66,9 +81,29 @@ export function getPostBySlug(slug: string): BlogPost | null {
     lastUpdated: data.lastUpdated || undefined,
     excerpt: data.excerpt || "",
     content,
-    categories: data.categories || [],
-    tags: data.tags || [],
+    status: getPostStatus(slug) ?? "published",
+    topics: [...new Set([...categories, ...tags])],
+    categories,
+    tags,
   };
+}
+
+export function getPublicPostsByTopic(topic: string): BlogPost[] {
+  return getPublicPosts().filter((post) => post.topics.includes(topic));
+}
+
+export function getAllPostsByTopic(topic: string): BlogPost[] {
+  return getAllPosts().filter((post) => post.topics.includes(topic));
+}
+
+export function getPublicTopics(): string[] {
+  return getAllTopics().filter((topic) =>
+    getPublicPosts().some((post) => post.topics.includes(topic)),
+  );
+}
+
+export function getAllTopics(): string[] {
+  return getAllTopicNames();
 }
 
 export function getPublicPostsByCategory(category: string): BlogPost[] {
@@ -129,53 +164,68 @@ export function getAllTags(): string[] {
 
 // ID管理のヘルパー関数
 export function getTagId(tag: string): number {
-  return tagIdMapper.getId(tag);
+  const id = getTopicId(tag);
+  if (id === undefined) throw new Error(`トピックIDが見つかりません: ${tag}`);
+  return id;
 }
 
 export function getTagFromId(id: number): string | undefined {
-  return tagIdMapper.getNameById(id);
+  return getTopicName(id);
 }
 
 export function getCategoryId(category: string): number {
-  return categoryIdMapper.getId(category);
+  const id = getTopicId(category);
+  if (id === undefined) {
+    throw new Error(`トピックIDが見つかりません: ${category}`);
+  }
+  return id;
 }
 
 export function getCategoryFromId(id: number): string | undefined {
-  return categoryIdMapper.getNameById(id);
+  return getTopicName(id);
 }
 
 // 静的生成用のID一覧を取得
 export function getAllTagIds(): number[] {
-  const tags = getAllTags();
-  return tags.map((tag) => getTagId(tag));
+  return getAllTopicIds();
 }
 
 export function getAllCategoryIds(): number[] {
-  const categories = getAllCategories();
-  return categories.map((category) => getCategoryId(category));
+  return getAllTopicIds();
 }
 
 // ブログID管理のヘルパー関数
 export function getBlogId(slug: string): number {
-  return blogIdMapper.getId(slug);
+  const id = getPostId(slug);
+  if (id === undefined) throw new Error(`ブログIDが見つかりません: ${slug}`);
+  return id;
 }
 
 export function getBlogSlugFromId(id: number): string | undefined {
-  return blogIdMapper.getSlugById(id);
+  return getPostSlug(id);
 }
 
 // 静的生成用のブログID一覧を取得
 export function getAllBlogIds(): number[] {
-  const posts = getAllPosts();
-  return posts.map((post) => getBlogId(post.slug));
+  return getAllPostIds();
 }
 
 export function getRegularBlogIds(): number[] {
-  return blogIdMapper.getRegularIds();
+  return getAllPostIds()
+    .filter((id) => {
+      const slug = getPostSlug(id);
+      return slug ? getPostStatus(slug) === "published" : false;
+    })
+    .sort((a, b) => a - b);
 }
 
 export function getTestBlogIds(): number[] {
-  return blogIdMapper.getTestIds();
+  return getAllPostIds()
+    .filter((id) => {
+      const slug = getPostSlug(id);
+      return slug ? getPostStatus(slug) === "draft" : false;
+    })
+    .sort((a, b) => a - b);
 }
 
 // ブログ記事をIDで取得

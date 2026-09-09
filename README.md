@@ -4,50 +4,59 @@
 
 ## 特徴
 
-- **Modern Stack**: Next.js 15 + React 19 + TypeScript
+- **Modern Stack**: Next.js 16 + React 19 + TypeScript
+- **pnpm Monorepo**: Web と Cloudflare Worker API を同一リポジトリで管理
 - **MDX Support**: Markdown 記法で React コンポーネントを使用可能
+- **D1 Content API**: 記事メタデータと topics を Cloudflare D1 で管理
 - **レスポンシブデザイン**: Tailwind CSS によるモバイルファーストデザイン
 - **静的サイト生成**: 高速なページ表示
-- **カテゴリー・タグ機能**: 記事の分類と検索
+- **Topics**: 旧カテゴリとタグを統合した記事の分類と検索
 - **日本語 URL 対応**: SHA-256 ハッシュ化による安全な日本語カテゴリ・タグ URL
 - **独自ドメイン**: Cloudflare DNS による独自ドメインでのアクセス
 - **SEO 最適化**: メタデータと OpenGraph 対応
 
 ## 技術スタック
 
-- **フレームワーク**: [Next.js 15](https://nextjs.org/) (App Router)
+- **フレームワーク**: [Next.js 16](https://nextjs.org/) (App Router)
 - **ライブラリ**: [React 19](https://reactjs.org/)
 - **言語**: [TypeScript](https://www.typescriptlang.org/)
 - **スタイリング**: [Tailwind CSS](https://tailwindcss.com/)
 - **記事形式**: [MDX](https://mdxjs.com/)
-- **ホスティング**: [Cloudflare Workers](https://workers.cloudflare.com/)
+- **ホスティング**: [Cloudflare Workers](https://workers.cloudflare.com/) + [D1](https://developers.cloudflare.com/d1/)
 
 ## ホスティング・デプロイメント
 
-### Cloudflare Pages + Workers 構成
+### Cloudflare Workers 構成
 
-このブログは**Cloudflare Pages**と**Cloudflare Workers**を組み合わせた構成でホスティングされています。
+このブログは、Next.js の静的 assets と D1 API を 1 つの Cloudflare Worker から配信します。
 
 #### 主な特徴
 
 - **静的サイト生成**: Next.js の `output: "export"` で静的ファイルを生成
 - **独自ドメイン対応**: Cloudflare DNS 経由で独自ドメインからアクセス可能
 - **日本語 URL 対応**: カテゴリ・タグの SHA-256 ハッシュ化による URL 安全化
-- **カスタムルーティング**: Cloudflare Workers による動的ルーティング
+- **カスタム API**: `apps/api` の Worker が `/api/v1/*` を処理
+- **DB 管理**: `posts`、`topics`、`post_topics` を D1 migration で管理
 - **高速配信**: Cloudflare のグローバルネットワークによる高速配信
 
 ## ディレクトリ構造
 
 ```
+├── apps/
+│   └── api/                  # D1 を利用する Cloudflare Worker API
+│       ├── src/              # API と DB クエリ
+│       ├── migrations/       # D1 migrations
+│       └── tests/            # API unit tests
 ├── src/
 │   ├── app/                  # Next.js App Router
-│   │   ├── api/             # API Routes (hash-mappings)
-│   │   │   ├── categories/  # カテゴリマッピングAPI
-│   │   │   ├── tags/        # タグマッピングAPI
-│   │   │   └── hash-mappings/ # 全マッピング情報API
+│   │   ├── api/             # 既存の静的互換 API Routes
+│   │   │   ├── categories/  # 旧カテゴリマッピングAPI
+│   │   │   ├── tags/        # 旧タグマッピングAPI
+│   │   │   └── id-mappings/ # 旧マッピング情報API
 │   │   ├── blog/            # ブログ記事関連ページ
 │   │   ├── categories/      # カテゴリページ
 │   │   ├── tags/            # タグページ
+│   │   ├── topics/           # 統合後の topics ページ
 │   │   ├── about/           # About ページ
 │   │   └── privacy-policy/  # プライバシーポリシー
 │   ├── components/          # Reactコンポーネント
@@ -57,11 +66,11 @@
 │   ├── lib/                 # ユーティリティ関数
 │   │   ├── blog.ts          # 記事管理関数
 │   │   └── hash.ts          # SHA-256ハッシュ化ユーティリティ
-│   └── index.ts             # Cloudflare Workers エントリーポイント
 ├── scripts/                 # スクリプト
 │   ├── lib/                 # 共通ユーティリティ
 │   │   └── mdx-utils.ts     # MDX関連の共通関数
 │   ├── create-mdx.ts        # MDXファイル作成
+│   ├── sync-id-mappings.ts  # D1のIDを静的ビルド用に同期
 │   ├── update-mdx-metadata.ts # メタデータ更新
 │   ├── validate-mdx.ts      # MDXバリデーション
 │   └── migrate-mdx-dates.ts # 日付マイグレーション
@@ -75,12 +84,54 @@
 - `/` - ホームページ（最新記事の表示）
 - `/blog` - 記事一覧ページ
 - `/blog/[slug]` - 記事詳細ページ
-- `/categories/[category]` - カテゴリー別記事一覧
-- `/tags/[tag]` - タグ別記事一覧
+- `/topics/[topic]` - topics 別記事一覧
+- `/categories/[category]`, `/tags/[tag]` - 既存 URL の互換ページ
 - `/about` - 運営者情報
 - `/privacy-policy` - プライバシーポリシー
 
 ## 開発ツール
+
+### 開発コマンド
+
+依存関係の管理には pnpm を使用します。
+
+```bash
+pnpm install
+pnpm dev                 # Next.js 開発サーバー
+pnpm check               # formatter / linter / typecheck / test / MDX validation
+pnpm build               # ローカルD1を同期して静的 assets を生成
+pnpm test                # backend test
+```
+
+### MDX と D1 の責務
+
+記事本文と画像などのコンテンツは、引き続き `content/blog/*.mdx` と Git で管理します。記事の公開状態、表示用メタデータ、topics の初期データは D1 の `posts` / `topics` / `post_topics` に保存します。
+
+記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。公開・下書きの判定はIDの値ではなく `posts.status` を使います。
+
+既存 MDX から初期データを再生成する場合は次を実行します。これは初期 migration の更新用であり、適用済みの本番 DB を自動上書きするコマンドではありません。
+
+```bash
+pnpm content:export
+pnpm --filter @kk2a/blog-api db:migrate:local
+```
+
+API は次の read endpoint を提供します。
+
+- `GET /api/v1/posts?limit=20&offset=0`
+- `GET /api/v1/posts/:slug`
+- `GET /api/v1/topics`
+- `GET /api/v1/topics/:topic/posts`
+
+### Cloudflare D1 の初回セットアップ
+
+```bash
+pnpm exec wrangler d1 create kk2a-blog
+pnpm --filter @kk2a/blog-api db:migrate:local
+pnpm --filter @kk2a/blog-api db:migrate:remote
+```
+
+リモートへ適用する前に、`wrangler.jsonc` の `d1_databases[0].database_id` に作成した UUID を設定してください。CI/CD では GitHub Actions の production environment に `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を登録します。
 
 ### MDX テンプレート作成スクリプト
 
@@ -88,11 +139,11 @@
 
 ```bash
 # ブログ記事を作成
-npm run create-mdx -- --slug my-article
-npm run create-mdx -- -s stern-brocot-tree
+pnpm create-mdx -- --slug my-article
+pnpm create-mdx -- -s stern-brocot-tree
 
 # ページを作成
-npm run create-mdx -- --slug about --type page
+pnpm create-mdx -- --slug about --type page
 ```
 
 **作成後の手順:**
@@ -100,7 +151,7 @@ npm run create-mdx -- --slug about --type page
 1. 生成されたMDXファイルを開く
 2. `title`, `description`, `excerpt`, `categories`, `tags` を編集
 3. コンテンツを記述
-4. `npm run dev` で確認
+4. `pnpm dev` で確認
 
 詳しい使い方は [docs/create-mdx-guide.md](docs/create-mdx-guide.md) を参照してください。
 
@@ -110,7 +161,7 @@ MDXファイルが正しいフォーマットと必須フィールドを持っ�
 
 ```bash
 # すべてのMDXファイルをバリデーション
-npm run validate-mdx
+pnpm validate-mdx
 ```
 
 **チェック項目:**
@@ -129,13 +180,15 @@ npm run validate-mdx
 3. 更新されたファイルを自動的に再ステージング
 4. すべてのMDXファイルをバリデーション（エラーがある場合はコミットを中断）
 
-**GitHub Actions CI:**
+**GitHub Actions CI (`.github/workflows/ci.yml`):**
 
 - MDXファイルのバリデーション
-- ESLintチェック
+- Biome formatter/linter
+- frontend/backend の TypeScript check
+- backend API の Vitest test
 - ビルド確認
 
-すべてのチェックが通過しないとマージできません。
+`main` への push で `deploy.yml` が起動し、D1 migration → remote D1からID同期を含むbuild → Worker deploy を順番に実行します。
 
 ### 共通ユーティリティ (scripts/lib/mdx-utils.ts)
 
