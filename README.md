@@ -46,7 +46,8 @@
 ├── apps/
 │   └── api/                  # D1 を利用する Cloudflare Worker API
 │       ├── src/              # API と DB クエリ
-│       ├── migrations/       # D1 migrations
+│       ├── migrations/       # D1 migrations generated from schema.ts
+│       ├── drizzle.config.ts # Drizzle Kit configuration
 │       └── tests/            # API unit tests
 ├── src/
 │   ├── app/                  # Next.js App Router
@@ -109,6 +110,8 @@ pnpm test                # backend test
 ### MDX と D1 の責務
 
 記事本文と画像などのコンテンツは、引き続き `content/blog/*.mdx` と Git で管理します。記事の公開状態、表示用メタデータ、topics は D1 の `posts` / `topics` / `post_topics` に同期します。
+
+既存の `0001_initial_schema.sql` は適用済みのD1 migrationとして保持し、今後のスキーマ変更は `pnpm --filter @kk2a/blog-api db:generate` でmigrationを生成します。
 
 記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。通常の新規記事はD1の自動採番を使い、`test-*` の記事は同期時にD1の状態から負数を自動採番します。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きの判定はIDの値ではなく `posts.status` を使います。
 

@@ -26,8 +26,9 @@
     "typecheck": "tsc --noEmit",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "test": "pnpm --filter @kk2a/blog-api test",
-    "check": "pnpm types && pnpm types:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm --filter @kk2a/blog-api typecheck && pnpm validate-mdx && pnpm test",
+    "test:scripts": "vitest run --config vitest.config.ts",
+    "test": "pnpm test:scripts && pnpm --filter @kk2a/blog-api test",
+    "check": "pnpm types && pnpm types:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm --filter @kk2a/blog-api typecheck && pnpm --filter @kk2a/blog-api db:check && pnpm validate-mdx && pnpm test",
     "deploy": "D1_DATABASE_LOCATION=remote pnpm build && pnpm exec wrangler deploy",
     "preview": "pnpm build && pnpm exec wrangler dev",
     "prepare": "husky"
@@ -71,6 +72,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5",
+    "vitest": "^3.2.7",
     "wrangler": "^4.30.0"
   },
   "lint-staged": {

@@ -4,31 +4,13 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import matter from "gray-matter";
-
-interface CurrentPost {
-  slug: string;
-  title: string;
-  date: string;
-  description: string;
-  excerpt: string;
-  lastUpdated: string | null;
-  contentHash: string;
-  topics: string[];
-  status: "draft" | "published";
-}
-
-interface ExistingPost {
-  id: number;
-  slug: string;
-  title: string;
-  date: string;
-  description: string;
-  excerpt: string;
-  last_updated: string | null;
-  content_hash: string;
-  status: "draft" | "published";
-}
+import {
+  assignPostIds,
+  type ExistingPost,
+  readPosts,
+  renderSyncSql,
+  samePost,
+} from "./lib/content-sync";
 
 interface WranglerResult<T> {
   results: T[];
@@ -38,62 +20,6 @@ const projectRoot = process.cwd();
 const contentDirectory = path.join(projectRoot, "content", "blog");
 const databaseLocation =
   process.env.D1_DATABASE_LOCATION === "remote" ? "--remote" : "--local";
-
-function sqlString(value: string): string {
-  return `'${value.replaceAll("'", "''")}'`;
-}
-
-function sqlValue(value: string | number | null): string {
-  if (value === null) return "NULL";
-  return typeof value === "number" ? String(value) : sqlString(value);
-}
-
-function requiredString(
-  value: unknown,
-  field: string,
-  fileName: string,
-): string {
-  if (typeof value !== "string" || !value) {
-    throw new Error(`${fileName}: ${field} is required`);
-  }
-  return value;
-}
-
-function readPosts(): CurrentPost[] {
-  return fs
-    .readdirSync(contentDirectory)
-    .filter((fileName) => fileName.endsWith(".mdx"))
-    .sort()
-    .map((fileName) => {
-      const slug = fileName.replace(/\.mdx$/, "");
-      const { data } = matter(
-        fs.readFileSync(path.join(contentDirectory, fileName), "utf8"),
-      );
-      const categories = Array.isArray(data.categories)
-        ? data.categories.filter(
-            (topic): topic is string => typeof topic === "string",
-          )
-        : [];
-      const tags = Array.isArray(data.tags)
-        ? data.tags.filter(
-            (topic): topic is string => typeof topic === "string",
-          )
-        : [];
-
-      return {
-        slug,
-        title: requiredString(data.title, "title", fileName),
-        date: requiredString(data.date, "date", fileName),
-        description: requiredString(data.description, "description", fileName),
-        excerpt: requiredString(data.excerpt, "excerpt", fileName),
-        lastUpdated:
-          typeof data.lastUpdated === "string" ? data.lastUpdated : null,
-        contentHash: requiredString(data.contentHash, "contentHash", fileName),
-        topics: [...new Set([...categories, ...tags])],
-        status: slug.startsWith("test-") ? "draft" : "published",
-      };
-    });
-}
 
 function executeJson<T>(command: string): T[] {
   const output = execFileSync(
@@ -136,166 +62,6 @@ function currentCommit(): string {
   }
 }
 
-function samePost(current: CurrentPost, existing: ExistingPost): boolean {
-  return (
-    current.title === existing.title &&
-    current.date === existing.date &&
-    current.description === existing.description &&
-    current.excerpt === existing.excerpt &&
-    current.lastUpdated === existing.last_updated &&
-    current.contentHash === existing.content_hash &&
-    current.status === existing.status
-  );
-}
-
-function assignPostIds(
-  posts: CurrentPost[],
-  existingPosts: ExistingPost[],
-): Map<string, number> {
-  const existingBySlug = new Map(
-    existingPosts.map((post) => [post.slug, post]),
-  );
-  const currentSlugs = new Set(posts.map((post) => post.slug));
-  const assignedIds = new Map<string, number>();
-  const usedIds = new Set(existingPosts.map((post) => post.id));
-
-  const assign = (post: CurrentPost, id: number): void => {
-    const occupant = existingPosts.find((existing) => existing.id === id);
-    if (
-      occupant &&
-      occupant.slug !== post.slug &&
-      currentSlugs.has(occupant.slug)
-    ) {
-      throw new Error(
-        `Cannot assign ID ${id} to ${post.slug}: it is already used by ${occupant.slug}`,
-      );
-    }
-    assignedIds.set(post.slug, id);
-    usedIds.add(id);
-  };
-
-  for (const post of posts) {
-    if (post.slug.startsWith("test-")) {
-      const existing = existingBySlug.get(post.slug);
-      if (existing && existing.id < 0) assign(post, existing.id);
-    }
-  }
-
-  let nextTestId = Math.min(
-    -1,
-    ...[...usedIds].filter((id) => id < 0).map((id) => id - 1),
-  );
-  for (const post of posts
-    .filter(
-      (current) =>
-        current.slug.startsWith("test-") && !assignedIds.has(current.slug),
-    )
-    .sort((left, right) => left.slug.localeCompare(right.slug))) {
-    while (usedIds.has(nextTestId)) nextTestId -= 1;
-    assign(post, nextTestId);
-    nextTestId -= 1;
-  }
-
-  return assignedIds;
-}
-
-function renderSyncSql(
-  posts: CurrentPost[],
-  existingPosts: ExistingPost[],
-  commit: string,
-): string {
-  const existingBySlug = new Map(
-    existingPosts.map((post) => [post.slug, post]),
-  );
-  const postIds = assignPostIds(posts, existingPosts);
-  const topics = [...new Set(posts.flatMap((post) => post.topics))].sort();
-  const orderedPosts = [...posts].sort((left, right) => {
-    return (
-      (postIds.get(left.slug) ?? Number.MAX_SAFE_INTEGER) -
-        (postIds.get(right.slug) ?? Number.MAX_SAFE_INTEGER) ||
-      left.slug.localeCompare(right.slug)
-    );
-  });
-  const statements = [
-    `-- Generated by scripts/sync-content.ts for commit ${commit}.`,
-    "-- This file is temporary and must not be committed.",
-  ];
-
-  if (posts.length === 0) {
-    statements.push(
-      "DELETE FROM post_topics;",
-      "DELETE FROM posts;",
-      "DELETE FROM topics;",
-    );
-  } else {
-    const slugValues = posts.map((post) => sqlString(post.slug)).join(", ");
-    statements.push(
-      `DELETE FROM post_topics WHERE post_id IN (SELECT id FROM posts WHERE slug NOT IN (${slugValues}));`,
-      `DELETE FROM posts WHERE slug NOT IN (${slugValues});`,
-    );
-
-    for (const post of orderedPosts) {
-      const assignedId = postIds.get(post.slug);
-      const existing = existingBySlug.get(post.slug);
-      if (assignedId !== undefined && existing && existing.id !== assignedId) {
-        statements.push(
-          `DELETE FROM post_topics WHERE post_id = ${existing.id};`,
-          `DELETE FROM posts WHERE id = ${existing.id};`,
-        );
-      }
-      const explicitId =
-        assignedId !== undefined && (!existing || existing.id !== assignedId);
-      const columns = explicitId
-        ? "id, slug, title, date, description, excerpt, last_updated, content_hash, content_path, status"
-        : "slug, title, date, description, excerpt, last_updated, content_hash, content_path, status";
-      const values = [
-        ...(explicitId ? [sqlValue(assignedId as number)] : []),
-        sqlString(post.slug),
-        sqlString(post.title),
-        sqlString(post.date),
-        sqlString(post.description),
-        sqlString(post.excerpt),
-        sqlValue(post.lastUpdated),
-        sqlString(post.contentHash),
-        sqlString(`content/blog/${post.slug}.mdx`),
-        sqlString(post.status),
-      ].join(", ");
-      statements.push(
-        `INSERT INTO posts (${columns}) VALUES (${values}) ON CONFLICT (slug) DO UPDATE SET title = excluded.title, date = excluded.date, description = excluded.description, excerpt = excluded.excerpt, last_updated = excluded.last_updated, content_hash = excluded.content_hash, content_path = excluded.content_path, status = excluded.status, updated_at = CURRENT_TIMESTAMP WHERE posts.title IS NOT excluded.title OR posts.date IS NOT excluded.date OR posts.description IS NOT excluded.description OR posts.excerpt IS NOT excluded.excerpt OR posts.last_updated IS NOT excluded.last_updated OR posts.content_hash IS NOT excluded.content_hash OR posts.content_path IS NOT excluded.content_path OR posts.status IS NOT excluded.status;`,
-      );
-      statements.push(
-        `DELETE FROM post_topics WHERE post_id = (SELECT id FROM posts WHERE slug = ${sqlString(post.slug)});`,
-      );
-    }
-
-    for (const topic of topics) {
-      statements.push(
-        `INSERT INTO topics (name, slug) VALUES (${sqlString(topic)}, ${sqlString(topic)}) ON CONFLICT (name) DO UPDATE SET slug = excluded.slug WHERE topics.slug IS NOT excluded.slug;`,
-      );
-    }
-
-    if (topics.length === 0) {
-      statements.push("DELETE FROM post_topics;", "DELETE FROM topics;");
-    } else {
-      const topicValues = topics.map(sqlString).join(", ");
-      statements.push(
-        `DELETE FROM post_topics WHERE topic_id IN (SELECT id FROM topics WHERE name NOT IN (${topicValues}));`,
-        `DELETE FROM topics WHERE name NOT IN (${topicValues});`,
-      );
-    }
-
-    for (const post of posts) {
-      for (const topic of post.topics) {
-        statements.push(
-          `INSERT OR IGNORE INTO post_topics (post_id, topic_id) SELECT p.id, t.id FROM posts AS p CROSS JOIN topics AS t WHERE p.slug = ${sqlString(post.slug)} AND t.name = ${sqlString(topic)};`,
-        );
-      }
-    }
-  }
-
-  return `${statements.join("\n")}\n`;
-}
-
 function executeFile(filePath: string): void {
   execFileSync(
     "pnpm",
@@ -315,7 +81,7 @@ function executeFile(filePath: string): void {
 }
 
 function main(): void {
-  const posts = readPosts();
+  const posts = readPosts(contentDirectory);
   const existingPosts = executeJson<ExistingPost>(
     "SELECT id, slug, title, date, description, excerpt, last_updated, content_hash, status FROM posts ORDER BY id ASC",
   );

@@ -8,10 +8,13 @@
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
     "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:check": "drizzle-kit check --config drizzle.config.ts",
     "db:migrate:local": "wrangler d1 migrations apply kk2a-blog --local --config ../../wrangler.jsonc",
     "db:migrate:remote": "wrangler d1 migrations apply kk2a-blog --remote --config ../../wrangler.jsonc"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.31.10",
     "typescript": "^5.0.0",
     "vitest": "^3.2.4",
     "wrangler": "^4.126.0"

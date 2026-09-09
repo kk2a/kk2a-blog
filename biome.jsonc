@@ -4,9 +4,12 @@
     "includes": [
       "apps/api/**/*.ts",
       "!apps/api/src/worker-configuration.d.ts",
+      "scripts/lib/content-sync.ts",
+      "scripts/lib/content-sync.test.ts",
       "scripts/prepare-content.ts",
       "scripts/sync-content.ts",
       "scripts/sync-id-mappings.ts",
+      "vitest.config.ts",
       "biome.jsonc"
     ],
     "ignoreUnknown": true

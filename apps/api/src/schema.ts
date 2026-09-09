@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  check,
   index,
   integer,
   primaryKey,
@@ -26,6 +27,7 @@ export const posts = sqliteTable(
     updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   },
   (table) => [
+    check("posts_status_check", sql`${table.status} IN ('draft', 'published')`),
     index("idx_posts_date").on(table.date),
     index("idx_posts_status_date").on(table.status, table.date),
   ],
