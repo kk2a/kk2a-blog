@@ -15,7 +15,7 @@
     "create-mdx": "tsx scripts/create-mdx.ts",
     "validate-mdx": "tsx scripts/validate-mdx.ts",
     "predev": "pnpm prepare-content",
-    "dev": "next dev --webpack",
+    "dev": "next dev --webpack --hostname 0.0.0.0",
     "prebuild": "pnpm prepare-content",
     "build": "next build --webpack",
     "start": "next start",
