@@ -149,17 +149,84 @@ function samePost(current: CurrentPost, existing: ExistingPost): boolean {
   );
 }
 
+function assignPostIds(
+  posts: CurrentPost[],
+  existingPosts: ExistingPost[],
+  bootstrap: boolean,
+): Map<string, number> {
+  const existingBySlug = new Map(
+    existingPosts.map((post) => [post.slug, post]),
+  );
+  const currentSlugs = new Set(posts.map((post) => post.slug));
+  const assignedIds = new Map<string, number>();
+  const usedIds = new Set(existingPosts.map((post) => post.id));
+
+  const assign = (post: CurrentPost, id: number): void => {
+    const occupant = existingPosts.find((existing) => existing.id === id);
+    if (
+      occupant &&
+      occupant.slug !== post.slug &&
+      currentSlugs.has(occupant.slug)
+    ) {
+      throw new Error(
+        `Cannot assign ID ${id} to ${post.slug}: it is already used by ${occupant.slug}`,
+      );
+    }
+    assignedIds.set(post.slug, id);
+    usedIds.add(id);
+  };
+
+  for (const post of posts) {
+    const legacyId = legacyPostIds[post.slug];
+    if (bootstrap && legacyId !== undefined) {
+      assign(post, legacyId);
+      continue;
+    }
+
+    if (!bootstrap && post.slug.startsWith("test-")) {
+      if (legacyId !== undefined) {
+        assign(post, legacyId);
+      } else {
+        const existing = existingBySlug.get(post.slug);
+        if (existing && existing.id < 0) assign(post, existing.id);
+      }
+    }
+  }
+
+  let nextTestId = Math.min(
+    -1,
+    ...[...usedIds].filter((id) => id < 0).map((id) => id - 1),
+  );
+  for (const post of posts
+    .filter(
+      (current) =>
+        current.slug.startsWith("test-") && !assignedIds.has(current.slug),
+    )
+    .sort((left, right) => left.slug.localeCompare(right.slug))) {
+    while (usedIds.has(nextTestId)) nextTestId -= 1;
+    assign(post, nextTestId);
+    nextTestId -= 1;
+  }
+
+  return assignedIds;
+}
+
 function renderSyncSql(
   posts: CurrentPost[],
+  existingPosts: ExistingPost[],
   bootstrap: boolean,
   commit: string,
 ): string {
+  const existingBySlug = new Map(
+    existingPosts.map((post) => [post.slug, post]),
+  );
+  const postIds = assignPostIds(posts, existingPosts, bootstrap);
   const topics = [...new Set(posts.flatMap((post) => post.topics))].sort();
   const orderedPosts = [...posts].sort((left, right) => {
     if (!bootstrap) return left.slug.localeCompare(right.slug);
     return (
-      (legacyPostIds[left.slug] ?? Number.MAX_SAFE_INTEGER) -
-        (legacyPostIds[right.slug] ?? Number.MAX_SAFE_INTEGER) ||
+      (postIds.get(left.slug) ?? Number.MAX_SAFE_INTEGER) -
+        (postIds.get(right.slug) ?? Number.MAX_SAFE_INTEGER) ||
       left.slug.localeCompare(right.slug)
     );
   });
@@ -182,12 +249,22 @@ function renderSyncSql(
     );
 
     for (const post of orderedPosts) {
-      const legacyId = bootstrap ? legacyPostIds[post.slug] : undefined;
-      const columns = legacyId
+      const assignedId = postIds.get(post.slug);
+      const existing = existingBySlug.get(post.slug);
+      if (assignedId !== undefined && existing && existing.id !== assignedId) {
+        statements.push(
+          `DELETE FROM post_topics WHERE post_id = ${existing.id};`,
+          `DELETE FROM posts WHERE id = ${existing.id};`,
+        );
+      }
+      const explicitId =
+        assignedId !== undefined &&
+        (bootstrap || !existing || existing.id !== assignedId);
+      const columns = explicitId
         ? "id, slug, title, date, description, excerpt, last_updated, content_hash, content_path, status"
         : "slug, title, date, description, excerpt, last_updated, content_hash, content_path, status";
       const values = [
-        ...(legacyId ? [sqlValue(legacyId)] : []),
+        ...(explicitId ? [sqlValue(assignedId as number)] : []),
         sqlString(post.slug),
         sqlString(post.title),
         sqlString(post.date),
@@ -260,14 +337,20 @@ function main(): void {
   const existingBySlug = new Map(
     existingPosts.map((post) => [post.slug, post]),
   );
+  const bootstrap = existingPosts.length === 0;
+  const postIds = assignPostIds(posts, existingPosts, bootstrap);
   const changedPosts = posts.filter((post) => {
     const existing = existingBySlug.get(post.slug);
-    return !existing || !samePost(post, existing);
+    const assignedId = postIds.get(post.slug);
+    return (
+      !existing ||
+      !samePost(post, existing) ||
+      (assignedId !== undefined && assignedId !== existing.id)
+    );
   });
   const deletedPosts = existingPosts.filter(
     (post) => !posts.some((current) => current.slug === post.slug),
   );
-  const bootstrap = existingPosts.length === 0;
   const temporaryDirectory = fs.mkdtempSync(
     path.join(os.tmpdir(), "kk2a-blog-content-sync-"),
   );
@@ -276,7 +359,7 @@ function main(): void {
   try {
     fs.writeFileSync(
       sqlPath,
-      renderSyncSql(posts, bootstrap, currentCommit()),
+      renderSyncSql(posts, existingPosts, bootstrap, currentCommit()),
       "utf8",
     );
     executeFile(sqlPath);
