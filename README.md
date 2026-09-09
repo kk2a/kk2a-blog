@@ -73,7 +73,6 @@
 │   ├── create-mdx.ts        # MDXファイル作成
 │   ├── sync-content.ts      # MDXとD1の差分同期
 │   ├── prepare-content.ts   # migration・content同期・ID同期
-│   ├── content-id-history.ts # 既存公開URLのID互換情報
 │   ├── sync-id-mappings.ts  # D1のIDを静的ビルド用に同期
 │   ├── update-mdx-metadata.ts # メタデータ更新
 │   ├── validate-mdx.ts      # MDXバリデーション
@@ -111,7 +110,7 @@ pnpm test                # backend test
 
 記事本文と画像などのコンテンツは、引き続き `content/blog/*.mdx` と Git で管理します。記事の公開状態、表示用メタデータ、topics は D1 の `posts` / `topics` / `post_topics` に同期します。
 
-記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。初回同期では既存公開URLのIDを引き継ぎ、通常の新規記事はD1の自動採番を使います。`test-*` の記事は互換用に負数を自動採番します。公開・下書きの判定はIDの値ではなく `posts.status` を使います。
+記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。通常の新規記事はD1の自動採番を使い、`test-*` の記事は同期時にD1の状態から負数を自動採番します。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きの判定はIDの値ではなく `posts.status` を使います。
 
 MDXからD1のcontentデータを同期する場合は次を実行します。現在のMDXとD1のメタデータを比較し、追加・更新・削除とtopicsの関連を反映します。seed SQLをGitに生成・保存することはありません。
 

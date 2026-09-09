@@ -5,7 +5,6 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import matter from "gray-matter";
-import { legacyPostIds } from "./content-id-history";
 
 interface CurrentPost {
   slug: string;
@@ -152,7 +151,6 @@ function samePost(current: CurrentPost, existing: ExistingPost): boolean {
 function assignPostIds(
   posts: CurrentPost[],
   existingPosts: ExistingPost[],
-  bootstrap: boolean,
 ): Map<string, number> {
   const existingBySlug = new Map(
     existingPosts.map((post) => [post.slug, post]),
@@ -177,19 +175,9 @@ function assignPostIds(
   };
 
   for (const post of posts) {
-    const legacyId = legacyPostIds[post.slug];
-    if (bootstrap && legacyId !== undefined) {
-      assign(post, legacyId);
-      continue;
-    }
-
-    if (!bootstrap && post.slug.startsWith("test-")) {
-      if (legacyId !== undefined) {
-        assign(post, legacyId);
-      } else {
-        const existing = existingBySlug.get(post.slug);
-        if (existing && existing.id < 0) assign(post, existing.id);
-      }
+    if (post.slug.startsWith("test-")) {
+      const existing = existingBySlug.get(post.slug);
+      if (existing && existing.id < 0) assign(post, existing.id);
     }
   }
 
@@ -214,16 +202,14 @@ function assignPostIds(
 function renderSyncSql(
   posts: CurrentPost[],
   existingPosts: ExistingPost[],
-  bootstrap: boolean,
   commit: string,
 ): string {
   const existingBySlug = new Map(
     existingPosts.map((post) => [post.slug, post]),
   );
-  const postIds = assignPostIds(posts, existingPosts, bootstrap);
+  const postIds = assignPostIds(posts, existingPosts);
   const topics = [...new Set(posts.flatMap((post) => post.topics))].sort();
   const orderedPosts = [...posts].sort((left, right) => {
-    if (!bootstrap) return left.slug.localeCompare(right.slug);
     return (
       (postIds.get(left.slug) ?? Number.MAX_SAFE_INTEGER) -
         (postIds.get(right.slug) ?? Number.MAX_SAFE_INTEGER) ||
@@ -258,8 +244,7 @@ function renderSyncSql(
         );
       }
       const explicitId =
-        assignedId !== undefined &&
-        (bootstrap || !existing || existing.id !== assignedId);
+        assignedId !== undefined && (!existing || existing.id !== assignedId);
       const columns = explicitId
         ? "id, slug, title, date, description, excerpt, last_updated, content_hash, content_path, status"
         : "slug, title, date, description, excerpt, last_updated, content_hash, content_path, status";
@@ -337,8 +322,7 @@ function main(): void {
   const existingBySlug = new Map(
     existingPosts.map((post) => [post.slug, post]),
   );
-  const bootstrap = existingPosts.length === 0;
-  const postIds = assignPostIds(posts, existingPosts, bootstrap);
+  const postIds = assignPostIds(posts, existingPosts);
   const changedPosts = posts.filter((post) => {
     const existing = existingBySlug.get(post.slug);
     const assignedId = postIds.get(post.slug);
@@ -359,7 +343,7 @@ function main(): void {
   try {
     fs.writeFileSync(
       sqlPath,
-      renderSyncSql(posts, existingPosts, bootstrap, currentCommit()),
+      renderSyncSql(posts, existingPosts, currentCommit()),
       "utf8",
     );
     executeFile(sqlPath);
