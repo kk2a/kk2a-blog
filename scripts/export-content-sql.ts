@@ -25,6 +25,22 @@ const defaultOutput = path.join(
   "0002_seed_content.sql",
 );
 
+// IDs are initial D1 data. Keeping them here preserves the public URLs that
+// existed before the mapping moved from generated JSON into D1.
+const initialPostIds: Record<string, number> = {
+  "atcoder-irohen-yellow": 1,
+  "omu-internship": 2,
+  "stern-brocot-tree": 3,
+  "tiku-ten": 4,
+  "hon-no-jisui": 5,
+  db_index: 6,
+  "test-labelref": 7,
+  "test-math-components-sample": 8,
+  "test-mdx-annotation-sample": 9,
+  "test-mdx-play-ground": 10,
+  "test-template": 11,
+};
+
 function sqlString(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
 }
@@ -89,8 +105,17 @@ function render(posts: Array<Frontmatter & { slug: string }>): string {
 
   for (const post of posts) {
     const status = post.slug.startsWith("test-") ? "draft" : "published";
+    const id = initialPostIds[post.slug];
+    const columns =
+      id === undefined
+        ? "slug, title, date, description, excerpt, last_updated, content_hash, content_path, status"
+        : "id, slug, title, date, description, excerpt, last_updated, content_hash, content_path, status";
+    const values =
+      id === undefined
+        ? `${sqlString(post.slug)}, ${sqlString(post.title)}, ${sqlString(post.date)}, ${sqlString(post.description)}, ${sqlString(post.excerpt)}, ${post.lastUpdated ? sqlString(post.lastUpdated) : "NULL"}, ${sqlString(post.contentHash)}, ${sqlString(`content/blog/${post.slug}.mdx`)}, ${sqlString(status)}`
+        : `${id}, ${sqlString(post.slug)}, ${sqlString(post.title)}, ${sqlString(post.date)}, ${sqlString(post.description)}, ${sqlString(post.excerpt)}, ${post.lastUpdated ? sqlString(post.lastUpdated) : "NULL"}, ${sqlString(post.contentHash)}, ${sqlString(`content/blog/${post.slug}.mdx`)}, ${sqlString(status)}`;
     lines.push(
-      `INSERT INTO posts (slug, title, date, description, excerpt, last_updated, content_hash, content_path, status) VALUES (${sqlString(post.slug)}, ${sqlString(post.title)}, ${sqlString(post.date)}, ${sqlString(post.description)}, ${sqlString(post.excerpt)}, ${post.lastUpdated ? sqlString(post.lastUpdated) : "NULL"}, ${sqlString(post.contentHash)}, ${sqlString(`content/blog/${post.slug}.mdx`)}, ${sqlString(status)}) ON CONFLICT (slug) DO UPDATE SET title = excluded.title, date = excluded.date, description = excluded.description, excerpt = excluded.excerpt, last_updated = excluded.last_updated, content_hash = excluded.content_hash, content_path = excluded.content_path, status = excluded.status, updated_at = CURRENT_TIMESTAMP;`,
+      `INSERT INTO posts (${columns}) VALUES (${values}) ON CONFLICT (slug) DO UPDATE SET title = excluded.title, date = excluded.date, description = excluded.description, excerpt = excluded.excerpt, last_updated = excluded.last_updated, content_hash = excluded.content_hash, content_path = excluded.content_path, status = excluded.status, updated_at = CURRENT_TIMESTAMP;`,
     );
     lines.push(
       `DELETE FROM post_topics WHERE post_id = (SELECT id FROM posts WHERE slug = ${sqlString(post.slug)});`,
