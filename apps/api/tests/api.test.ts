@@ -45,14 +45,48 @@ function createDatabase(): D1Database {
           return null;
         },
         async all<T>() {
-          const results = query.includes("FROM topics") ? topics : postRows;
+          let results: unknown[];
+          if (query.includes('count("posts"."id")')) {
+            results = [{ total: 1 }];
+          } else if (query.includes("group by")) {
+            results = topics;
+          } else {
+            results = postRows;
+          }
           return { success: true, meta, results: results as T[] };
         },
         async run<T>() {
           return { success: true, meta, results: [] as T[] };
         },
         async raw<T>() {
-          return [] as T;
+          if (query.includes("group by")) {
+            return [[1, "技術", "技術", 1]] as T;
+          }
+          if (query.includes('count("posts"."id")')) {
+            return [[1]] as T;
+          }
+          if (
+            query.includes('select "posts"."id"') &&
+            !query.includes('"posts"."slug"')
+          ) {
+            return [[1]] as T;
+          }
+          return [
+            [
+              postRows[0].id,
+              postRows[0].slug,
+              postRows[0].title,
+              postRows[0].date,
+              postRows[0].description,
+              postRows[0].excerpt,
+              postRows[0].last_updated,
+              postRows[0].content_hash,
+              postRows[0].content_path,
+              postRows[0].status,
+              postRows[0].topic_name,
+              postRows[0].topic_slug,
+            ],
+          ] as T;
         },
       };
     },

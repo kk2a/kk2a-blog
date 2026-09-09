@@ -6,6 +6,7 @@ import {
   getAllTopicIds,
   getAllTopicNames,
   getPostId,
+  getPostMapping,
   getPostSlug,
   getPostStatus,
   getTopicId,
@@ -58,7 +59,7 @@ export function getAllPosts(): BlogPost[] {
 
 // 一覧表示用: テスト記事を除外
 export function getPublicPosts(): BlogPost[] {
-  return getAllPosts().filter((post) => !post.slug.startsWith("test-"));
+  return getAllPosts().filter((post) => post.status === "published");
 }
 
 export function getPostBySlug(slug: string): BlogPost | null {
@@ -70,19 +71,23 @@ export function getPostBySlug(slug: string): BlogPost | null {
 
   const fileContents = fs.readFileSync(filePath, "utf8");
   const { data, content } = matter(fileContents);
+  const mapping = getPostMapping(slug);
+  if (!mapping) {
+    throw new Error(`D1 content mapping not found for post: ${slug}`);
+  }
 
   const categories = Array.isArray(data.categories) ? data.categories : [];
   const tags = Array.isArray(data.tags) ? data.tags : [];
 
   return {
     slug,
-    title: data.title || "",
-    date: data.date || "",
-    lastUpdated: data.lastUpdated || undefined,
-    excerpt: data.excerpt || "",
+    title: mapping.title,
+    date: mapping.date,
+    lastUpdated: mapping.last_updated ?? undefined,
+    excerpt: mapping.excerpt,
     content,
-    status: getPostStatus(slug) ?? "published",
-    topics: [...new Set([...categories, ...tags])],
+    status: mapping.status,
+    topics: mapping.topics.map((topic) => topic.name),
     categories,
     tags,
   };

@@ -23,6 +23,7 @@
 - **スタイリング**: [Tailwind CSS](https://tailwindcss.com/)
 - **記事形式**: [MDX](https://mdxjs.com/)
 - **ホスティング**: [Cloudflare Workers](https://workers.cloudflare.com/) + [D1](https://developers.cloudflare.com/d1/)
+- **DBアクセス**: [Drizzle ORM](https://orm.drizzle.team/) + Cloudflare D1
 
 ## ホスティング・デプロイメント
 
@@ -45,7 +46,8 @@
 ├── apps/
 │   └── api/                  # D1 を利用する Cloudflare Worker API
 │       ├── src/              # API と DB クエリ
-│       ├── migrations/       # D1 migrations
+│       ├── migrations/       # D1 migrations generated from schema.ts
+│       ├── drizzle.config.ts # Drizzle Kit configuration
 │       └── tests/            # API unit tests
 ├── src/
 │   ├── app/                  # Next.js App Router
@@ -70,6 +72,8 @@
 │   ├── lib/                 # 共通ユーティリティ
 │   │   └── mdx-utils.ts     # MDX関連の共通関数
 │   ├── create-mdx.ts        # MDXファイル作成
+│   ├── sync-content.ts      # MDXとD1の差分同期
+│   ├── prepare-content.ts   # migration・content同期・ID同期
 │   ├── sync-id-mappings.ts  # D1のIDを静的ビルド用に同期
 │   ├── update-mdx-metadata.ts # メタデータ更新
 │   ├── validate-mdx.ts      # MDXバリデーション
@@ -105,15 +109,19 @@ pnpm test                # backend test
 
 ### MDX と D1 の責務
 
-記事本文と画像などのコンテンツは、引き続き `content/blog/*.mdx` と Git で管理します。記事の公開状態、表示用メタデータ、topics の初期データは D1 の `posts` / `topics` / `post_topics` に保存します。
+記事本文と画像などのコンテンツは、引き続き `content/blog/*.mdx` と Git で管理します。記事の公開状態、表示用メタデータ、topics は D1 の `posts` / `topics` / `post_topics` に同期します。
 
-記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。公開・下書きの判定はIDの値ではなく `posts.status` を使います。
+既存の `0001_initial_schema.sql` は適用済みのD1 migrationとして保持し、今後のスキーマ変更は `pnpm --filter @kk2a/blog-api db:generate` でmigrationを生成します。
 
-既存 MDX から初期データを再生成する場合は次を実行します。これは初期 migration の更新用であり、適用済みの本番 DB を自動上書きするコマンドではありません。
+記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。通常の新規記事はD1の自動採番を使い、`test-*` の記事は同期時にD1の状態から負数を自動採番します。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きの判定はIDの値ではなく `posts.status` を使います。
+
+MDXからD1のcontentデータを同期する場合は次を実行します。現在のMDXとD1のメタデータを比較し、追加・更新・削除とtopicsの関連を反映します。seed SQLをGitに生成・保存することはありません。
 
 ```bash
-pnpm content:export
-pnpm --filter @kk2a/blog-api db:migrate:local
+pnpm prepare-content
+
+# production D1へ同期する場合
+D1_DATABASE_LOCATION=remote pnpm prepare-content
 ```
 
 API は次の read endpoint を提供します。
@@ -131,7 +139,7 @@ pnpm --filter @kk2a/blog-api db:migrate:local
 pnpm --filter @kk2a/blog-api db:migrate:remote
 ```
 
-リモートへ適用する前に、`wrangler.jsonc` の `d1_databases[0].database_id` に作成した UUID を設定してください。CI/CD では GitHub Actions の production environment に `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を登録します。
+リモートへ適用する前に、`wrangler.jsonc` の `d1_databases[0].database_id` に作成した UUID を設定してください。Workers Builds側にD1 migrationを実行できるCloudflare API tokenを設定します。
 
 ### MDX テンプレート作成スクリプト
 
@@ -188,7 +196,7 @@ pnpm validate-mdx
 - backend API の Vitest test
 - ビルド確認
 
-`main` への push で `deploy.yml` が起動し、D1 migration → remote D1からID同期を含むbuild → Worker deploy を順番に実行します。
+Cloudflare Workers Buildsでmainへのpushを起点にデプロイします。Build commandは `D1_DATABASE_LOCATION=remote pnpm build`、Deploy commandは `pnpm exec wrangler deploy` を指定します。Build前処理でschema migration、MDXからD1へのcontent同期、remote D1からのID同期を順番に実行します。
 
 ### 共通ユーティリティ (scripts/lib/mdx-utils.ts)
 

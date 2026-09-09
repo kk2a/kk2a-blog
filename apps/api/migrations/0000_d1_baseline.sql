@@ -1,0 +1,2 @@
+-- Baseline marker for the existing D1 schema.
+-- The schema itself is created by 0001_initial_schema.sql.

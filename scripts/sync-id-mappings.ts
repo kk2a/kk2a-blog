@@ -7,7 +7,30 @@ import path from "node:path";
 interface PostMapping {
   id: number;
   slug: string;
+  title: string;
+  date: string;
+  description: string;
+  excerpt: string;
+  last_updated: string | null;
+  content_hash: string;
+  content_path: string;
   status: "draft" | "published";
+  topics: Array<{ name: string; slug: string }>;
+}
+
+interface PostMappingRow {
+  id: number;
+  slug: string;
+  title: string;
+  date: string;
+  description: string;
+  excerpt: string;
+  last_updated: string | null;
+  content_hash: string;
+  content_path: string;
+  status: "draft" | "published";
+  topic_name: string | null;
+  topic_slug: string | null;
 }
 
 interface TopicMapping {
@@ -23,6 +46,35 @@ interface D1Result<T> {
 interface IdMappings {
   posts: PostMapping[];
   topics: TopicMapping[];
+}
+
+function loadPosts(): PostMapping[] {
+  const rows = execute<PostMappingRow>(
+    "SELECT p.id, p.slug, p.title, p.date, p.description, p.excerpt, p.last_updated, p.content_hash, p.content_path, p.status, t.name AS topic_name, t.slug AS topic_slug FROM posts AS p LEFT JOIN post_topics AS pt ON pt.post_id = p.id LEFT JOIN topics AS t ON t.id = pt.topic_id ORDER BY p.id ASC, t.name ASC",
+  );
+  const posts = new Map<number, PostMapping>();
+
+  for (const row of rows) {
+    const post = posts.get(row.id) ?? {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      date: row.date,
+      description: row.description,
+      excerpt: row.excerpt,
+      last_updated: row.last_updated,
+      content_hash: row.content_hash,
+      content_path: row.content_path,
+      status: row.status,
+      topics: [],
+    };
+    if (row.topic_name && row.topic_slug) {
+      post.topics.push({ name: row.topic_name, slug: row.topic_slug });
+    }
+    posts.set(row.id, post);
+  }
+
+  return [...posts.values()];
 }
 
 const projectRoot = process.cwd();
@@ -58,9 +110,7 @@ function execute<T>(command: string): T[] {
 
 function main(): void {
   const mappings: IdMappings = {
-    posts: execute<PostMapping>(
-      "SELECT id, slug, status FROM posts ORDER BY id ASC",
-    ),
+    posts: loadPosts(),
     topics: execute<TopicMapping>(
       "SELECT id, name, slug FROM topics ORDER BY id ASC",
     ),

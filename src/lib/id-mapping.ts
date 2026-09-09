@@ -1,13 +1,21 @@
 import fs from "node:fs";
 import path from "node:path";
 
-interface PostMapping {
+export interface PostMapping {
   id: number;
   slug: string;
+  title: string;
+  date: string;
+  description: string;
+  excerpt: string;
+  last_updated: string | null;
+  content_hash: string;
+  content_path: string;
   status: "draft" | "published";
+  topics: Array<{ name: string; slug: string }>;
 }
 
-interface TopicMapping {
+export interface TopicMapping {
   id: number;
   name: string;
   slug: string;
@@ -36,6 +44,10 @@ function loadMappings(): IdMappings {
 
 export function getPostId(slug: string): number | undefined {
   return loadMappings().posts.find((post) => post.slug === slug)?.id;
+}
+
+export function getPostMapping(slug: string): PostMapping | undefined {
+  return loadMappings().posts.find((post) => post.slug === slug);
 }
 
 export function getPostSlug(id: number): string | undefined {
