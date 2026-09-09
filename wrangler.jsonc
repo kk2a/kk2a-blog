@@ -13,6 +13,7 @@
     {
       "binding": "DB",
       "database_name": "kk2a-blog",
+      "database_id": "3795108e-2ef1-4620-a8cc-08e9afae052f",
       "migrations_dir": "apps/api/migrations"
     }
   ],
