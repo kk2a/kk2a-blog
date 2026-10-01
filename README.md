@@ -103,7 +103,8 @@
 pnpm install
 pnpm dev                 # Next.js 開発サーバー
 pnpm check               # formatter / linter / typecheck / test / MDX validation
-pnpm build               # ローカルD1を同期して静的 assets を生成
+pnpm prepare-content     # migration・MDX同期・IDスナップショット生成
+pnpm build               # D1へ書き込まず静的assetsを生成
 pnpm test                # backend test
 ```
 
@@ -115,13 +116,17 @@ pnpm test                # backend test
 
 記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。通常の新規記事はD1の自動採番を使い、`test-*` の記事は同期時にD1の状態から負数を自動採番します。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きの判定はIDの値ではなく `posts.status` を使います。
 
-MDXからD1のcontentデータを同期する場合は次を実行します。現在のMDXとD1のメタデータを比較し、追加・更新・削除とtopicsの関連を反映します。seed SQLをGitに生成・保存することはありません。
+MDXからD1のcontentデータを同期する場合は `pnpm prepare-content` を実行します。現在のMDXとD1のメタデータを比較し、追加・更新・削除とtopicsの関連を反映します。seed SQLをGitに生成・保存することはありません。
+
+`pnpm build` はD1を書き換えません。事前に `pnpm prepare-content` を実行して、ビルドが読むローカルD1とIDスナップショットを用意してください。
 
 ```bash
 pnpm prepare-content
+pnpm build
 
 # production D1へ同期する場合
 D1_DATABASE_LOCATION=remote pnpm prepare-content
+pnpm build
 ```
 
 API は次の read endpoint を提供します。
@@ -196,7 +201,7 @@ pnpm validate-mdx
 - backend API の Vitest test
 - ビルド確認
 
-Cloudflare Workers Buildsでmainへのpushを起点にデプロイします。Build commandは `D1_DATABASE_LOCATION=remote pnpm build`、Deploy commandは `pnpm exec wrangler deploy` を指定します。Build前処理でschema migration、MDXからD1へのcontent同期、remote D1からのID同期を順番に実行します。
+Cloudflare Workers Buildsでmainへのpushを起点にデプロイします。Build commandは `D1_DATABASE_LOCATION=remote pnpm prepare-content && pnpm build`、Deploy commandは `pnpm exec wrangler deploy` を指定します。Build commandの前半でschema migration、MDXからD1へのcontent同期、remote D1からのID同期を実行し、後半のbuildはD1を書き換えずに静的assetsを生成します。
 
 ### 共通ユーティリティ (scripts/lib/mdx-utils.ts)
 
