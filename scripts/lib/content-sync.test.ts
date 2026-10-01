@@ -168,4 +168,17 @@ tags: [MDX, SQLite]
       "INSERT OR IGNORE INTO post_topics (post_id, topic_id)",
     );
   });
+
+  it("keeps new topics until their post relationships are inserted", () => {
+    const sql = renderSyncSql([currentPost("hello", ["MDX"])], [], "commit");
+    const relationIndex = sql.indexOf(
+      "INSERT OR IGNORE INTO post_topics (post_id, topic_id)",
+    );
+    const cleanupIndex = sql.indexOf(
+      "DELETE FROM topics WHERE id NOT IN (SELECT topic_id FROM post_topics)",
+    );
+
+    expect(relationIndex).toBeGreaterThan(-1);
+    expect(cleanupIndex).toBeGreaterThan(relationIndex);
+  });
 });

@@ -254,10 +254,6 @@ export function renderSyncSql(
         `DELETE FROM post_topics WHERE topic_id IN (SELECT id FROM topics WHERE name NOT IN (${topicValues}));`,
         `DELETE FROM topics WHERE name NOT IN (${topicValues});`,
       );
-    } else {
-      statements.push(
-        "DELETE FROM topics WHERE id NOT IN (SELECT topic_id FROM post_topics);",
-      );
     }
 
     for (const post of posts) {
@@ -273,6 +269,12 @@ export function renderSyncSql(
           `INSERT OR IGNORE INTO post_topics (post_id, topic_id) SELECT p.id, t.id FROM posts AS p CROSS JOIN topics AS t WHERE p.slug = ${sqlString(post.slug)} AND t.name = ${sqlString(topic)};`,
         );
       }
+    }
+
+    if (mode === "preserve" && topics.length > 0) {
+      statements.push(
+        "DELETE FROM topics WHERE id NOT IN (SELECT topic_id FROM post_topics);",
+      );
     }
   }
 
