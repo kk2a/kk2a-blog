@@ -16,7 +16,6 @@
     "validate-mdx": "tsx scripts/validate-mdx.ts",
     "predev": "pnpm prepare-content",
     "dev": "next dev --webpack --hostname 0.0.0.0",
-    "prebuild": "pnpm prepare-content",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "biome check .",
@@ -29,8 +28,8 @@
     "test:scripts": "vitest run --config vitest.config.ts",
     "test": "pnpm test:scripts && pnpm --filter @kk2a/blog-api test",
     "check": "pnpm types && pnpm types:check && pnpm format:check && pnpm lint && pnpm typecheck && pnpm --filter @kk2a/blog-api typecheck && pnpm --filter @kk2a/blog-api db:check && pnpm validate-mdx && pnpm test",
-    "deploy": "D1_DATABASE_LOCATION=remote pnpm build && pnpm exec wrangler deploy",
-    "preview": "pnpm build && pnpm exec wrangler dev",
+    "deploy": "D1_DATABASE_LOCATION=remote pnpm prepare-content && pnpm build && pnpm exec wrangler deploy",
+    "preview": "pnpm prepare-content && pnpm build && pnpm exec wrangler dev",
     "prepare": "husky"
   },
   "dependencies": {
