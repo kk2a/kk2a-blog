@@ -124,4 +124,48 @@ tags: [MDX, SQLite]
     expect(sql).toContain("'O''Reilly'");
     expect(sql).toContain("'MDX'");
   });
+
+  it("preserves D1 metadata and topics for existing posts by default", () => {
+    const existing = {
+      ...existingPost("hello", 42),
+      title: "Edited directly in D1",
+      status: "draft" as const,
+    };
+    const sql = renderSyncSql(
+      [currentPost("hello", ["MDX"])],
+      [existing],
+      "commit",
+    );
+
+    expect(sql).toContain("content_hash = excluded.content_hash");
+    expect(sql).not.toContain("title = excluded.title");
+    expect(sql).not.toContain(
+      "DELETE FROM post_topics WHERE post_id = (SELECT id FROM posts WHERE slug = 'hello')",
+    );
+    expect(sql).not.toContain(
+      "INSERT OR IGNORE INTO post_topics (post_id, topic_id)",
+    );
+  });
+
+  it("can explicitly overwrite D1 metadata from MDX", () => {
+    const existing = {
+      ...existingPost("hello", 42),
+      title: "Edited directly in D1",
+      status: "draft" as const,
+    };
+    const sql = renderSyncSql(
+      [currentPost("hello", ["MDX"])],
+      [existing],
+      "commit",
+      "overwrite",
+    );
+
+    expect(sql).toContain("title = excluded.title");
+    expect(sql).toContain(
+      "DELETE FROM post_topics WHERE post_id = (SELECT id FROM posts WHERE slug = 'hello')",
+    );
+    expect(sql).toContain(
+      "INSERT OR IGNORE INTO post_topics (post_id, topic_id)",
+    );
+  });
 });

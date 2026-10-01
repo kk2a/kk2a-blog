@@ -26,6 +26,8 @@ export interface ExistingPost {
   status: "draft" | "published";
 }
 
+export type ContentSyncMode = "preserve" | "overwrite";
+
 function sqlString(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
 }
@@ -85,7 +87,12 @@ export function readPosts(contentDirectory: string): CurrentPost[] {
 export function samePost(
   current: CurrentPost,
   existing: ExistingPost,
+  mode: ContentSyncMode = "overwrite",
 ): boolean {
+  if (mode === "preserve") {
+    return current.contentHash === existing.content_hash;
+  }
+
   return (
     current.title === existing.title &&
     current.date === existing.date &&
@@ -152,6 +159,7 @@ export function renderSyncSql(
   posts: CurrentPost[],
   existingPosts: ExistingPost[],
   commit: string,
+  mode: ContentSyncMode = "preserve",
 ): string {
   const existingBySlug = new Map(
     existingPosts.map((post) => [post.slug, post]),
@@ -186,7 +194,9 @@ export function renderSyncSql(
     for (const post of orderedPosts) {
       const assignedId = postIds.get(post.slug);
       const existing = existingBySlug.get(post.slug);
-      if (assignedId !== undefined && existing && existing.id !== assignedId) {
+      const recreated =
+        assignedId !== undefined && existing && existing.id !== assignedId;
+      if (recreated) {
         statements.push(
           `DELETE FROM post_topics WHERE post_id = ${existing.id};`,
           `DELETE FROM posts WHERE id = ${existing.id};`,
@@ -209,12 +219,22 @@ export function renderSyncSql(
         sqlString(`content/blog/${post.slug}.mdx`),
         sqlString(post.status),
       ].join(", ");
+      const updateClause =
+        mode === "overwrite"
+          ? "title = excluded.title, date = excluded.date, description = excluded.description, excerpt = excluded.excerpt, last_updated = excluded.last_updated, content_hash = excluded.content_hash, content_path = excluded.content_path, status = excluded.status"
+          : "content_hash = excluded.content_hash, content_path = excluded.content_path";
+      const updateCondition =
+        mode === "overwrite"
+          ? "posts.title IS NOT excluded.title OR posts.date IS NOT excluded.date OR posts.description IS NOT excluded.description OR posts.excerpt IS NOT excluded.excerpt OR posts.last_updated IS NOT excluded.last_updated OR posts.content_hash IS NOT excluded.content_hash OR posts.content_path IS NOT excluded.content_path OR posts.status IS NOT excluded.status"
+          : "posts.content_hash IS NOT excluded.content_hash OR posts.content_path IS NOT excluded.content_path";
       statements.push(
-        `INSERT INTO posts (${columns}) VALUES (${values}) ON CONFLICT (slug) DO UPDATE SET title = excluded.title, date = excluded.date, description = excluded.description, excerpt = excluded.excerpt, last_updated = excluded.last_updated, content_hash = excluded.content_hash, content_path = excluded.content_path, status = excluded.status, updated_at = CURRENT_TIMESTAMP WHERE posts.title IS NOT excluded.title OR posts.date IS NOT excluded.date OR posts.description IS NOT excluded.description OR posts.excerpt IS NOT excluded.excerpt OR posts.last_updated IS NOT excluded.last_updated OR posts.content_hash IS NOT excluded.content_hash OR posts.content_path IS NOT excluded.content_path OR posts.status IS NOT excluded.status;`,
+        `INSERT INTO posts (${columns}) VALUES (${values}) ON CONFLICT (slug) DO UPDATE SET ${updateClause}, updated_at = CURRENT_TIMESTAMP WHERE ${updateCondition};`,
       );
-      statements.push(
-        `DELETE FROM post_topics WHERE post_id = (SELECT id FROM posts WHERE slug = ${sqlString(post.slug)});`,
-      );
+      if (mode === "overwrite" || !existing || recreated) {
+        statements.push(
+          `DELETE FROM post_topics WHERE post_id = (SELECT id FROM posts WHERE slug = ${sqlString(post.slug)});`,
+        );
+      }
     }
 
     for (const topic of topics) {
@@ -224,16 +244,30 @@ export function renderSyncSql(
     }
 
     if (topics.length === 0) {
-      statements.push("DELETE FROM post_topics;", "DELETE FROM topics;");
-    } else {
+      statements.push(
+        "DELETE FROM post_topics;",
+        "DELETE FROM topics WHERE id NOT IN (SELECT topic_id FROM post_topics);",
+      );
+    } else if (mode === "overwrite") {
       const topicValues = topics.map(sqlString).join(", ");
       statements.push(
         `DELETE FROM post_topics WHERE topic_id IN (SELECT id FROM topics WHERE name NOT IN (${topicValues}));`,
         `DELETE FROM topics WHERE name NOT IN (${topicValues});`,
       );
+    } else {
+      statements.push(
+        "DELETE FROM topics WHERE id NOT IN (SELECT topic_id FROM post_topics);",
+      );
     }
 
     for (const post of posts) {
+      const existing = existingBySlug.get(post.slug);
+      const assignedId = postIds.get(post.slug);
+      const recreated =
+        existing && assignedId !== undefined && existing.id !== assignedId;
+      if (mode !== "overwrite" && existing && !recreated) {
+        continue;
+      }
       for (const topic of post.topics) {
         statements.push(
           `INSERT OR IGNORE INTO post_topics (post_id, topic_id) SELECT p.id, t.id FROM posts AS p CROSS JOIN topics AS t WHERE p.slug = ${sqlString(post.slug)} AND t.name = ${sqlString(topic)};`,

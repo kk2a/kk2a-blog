@@ -104,6 +104,7 @@ pnpm install
 pnpm dev                 # Next.js 開発サーバー
 pnpm check               # formatter / linter / typecheck / test / MDX validation
 pnpm prepare-content     # migration・MDX同期・IDスナップショット生成
+pnpm content:edit        # D1の記事公開状態・topicsを編集
 pnpm build               # D1へ書き込まず静的assetsを生成
 pnpm test                # backend test
 ```
@@ -116,18 +117,31 @@ pnpm test                # backend test
 
 記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。通常の新規記事はD1の自動採番を使い、`test-*` の記事は同期時にD1の状態から負数を自動採番します。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きの判定はIDの値ではなく `posts.status` を使います。
 
-MDXからD1のcontentデータを同期する場合は `pnpm prepare-content` を実行します。現在のMDXとD1のメタデータを比較し、追加・更新・削除とtopicsの関連を反映します。seed SQLをGitに生成・保存することはありません。
+MDXからD1のcontentデータを同期する場合は `pnpm prepare-content` を実行します。新しい記事のメタデータとtopicsを登録し、既存記事ではMDX本文のハッシュとパスだけを更新します。既存記事のtitle、date、excerpt、公開状態、topicsはD1側の値を保持します。seed SQLをGitに生成・保存することはありません。
 
 `pnpm build` はD1を書き換えません。事前に `pnpm prepare-content` を実行して、ビルドが読むローカルD1とIDスナップショットを用意してください。
+
+既存記事のメタデータをMDXから意図的に上書きする場合は、`prepare-content:overwrite` を使います。通常の公開作業ではD1編集用の `content:edit` を使ってください。
 
 ```bash
 pnpm prepare-content
 pnpm build
 
+# MDXをD1へ明示的に上書きする場合
+pnpm prepare-content:overwrite
+
 # production D1へ同期する場合
 D1_DATABASE_LOCATION=remote pnpm prepare-content
 pnpm build
+
+# remote D1で記事を公開する場合。実行前にexportを自動作成します。
+pnpm content:edit -- --remote --slug my-article --publish --yes
+
+# remote D1のtopicsを置き換える場合
+pnpm content:edit -- --remote --slug my-article --topic TypeScript --topic Next.js --yes
 ```
+
+`content:edit` はデフォルトでlocal D1を対象にします。`--remote` を指定した更新には `--yes` が必要です。`--dry-run` を付けるとSQLだけを表示し、D1を変更しません。更新前のD1 exportは `.local/d1-backups/` に保存されます。
 
 API は次の read endpoint を提供します。
 
