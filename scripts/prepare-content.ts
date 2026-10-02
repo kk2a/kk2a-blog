@@ -10,5 +10,5 @@ function runPnpm(args: string[]): void {
 }
 
 runPnpm([`db:migrate:${location}`]);
-runPnpm(["exec", "tsx", "scripts/sync-content.ts"]);
+runPnpm(["exec", "tsx", "scripts/sync-content.ts", ...process.argv.slice(2)]);
 runPnpm(["sync-id-mappings"]);

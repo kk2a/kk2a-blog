@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   assignPostIds,
+  type ContentSyncMode,
   type ExistingPost,
   readPosts,
   renderSyncSql,
@@ -20,6 +21,9 @@ const projectRoot = process.cwd();
 const contentDirectory = path.join(projectRoot, "content", "blog");
 const databaseLocation =
   process.env.D1_DATABASE_LOCATION === "remote" ? "--remote" : "--local";
+const syncMode: ContentSyncMode = process.argv.includes("--overwrite")
+  ? "overwrite"
+  : "preserve";
 
 function executeJson<T>(command: string): T[] {
   const output = execFileSync(
@@ -94,7 +98,7 @@ function main(): void {
     const assignedId = postIds.get(post.slug);
     return (
       !existing ||
-      !samePost(post, existing) ||
+      !samePost(post, existing, syncMode) ||
       (assignedId !== undefined && assignedId !== existing.id)
     );
   });
@@ -109,7 +113,7 @@ function main(): void {
   try {
     fs.writeFileSync(
       sqlPath,
-      renderSyncSql(posts, existingPosts, currentCommit()),
+      renderSyncSql(posts, existingPosts, currentCommit(), syncMode),
       "utf8",
     );
     executeFile(sqlPath);
@@ -118,7 +122,7 @@ function main(): void {
   }
 
   console.log(
-    `Synchronized ${posts.length} posts (${changedPosts.length} changed, ${deletedPosts.length} deleted) and ${new Set(posts.flatMap((post) => post.topics)).size} topics to ${databaseLocation === "--remote" ? "remote" : "local"} D1.`,
+    `Synchronized ${posts.length} posts (${changedPosts.length} changed, ${deletedPosts.length} deleted) and ${new Set(posts.flatMap((post) => post.topics)).size} topics to ${databaseLocation === "--remote" ? "remote" : "local"} D1 in ${syncMode} mode.`,
   );
 }
 
