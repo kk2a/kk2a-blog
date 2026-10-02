@@ -14,9 +14,10 @@
     "db:migrate:remote": "wrangler d1 migrations apply kk2a-blog --remote --config ../../wrangler.jsonc"
   },
   "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.3.5",
     "drizzle-kit": "^0.31.10",
     "typescript": "^5.0.0",
-    "vitest": "^3.2.4",
+    "vitest": "^4.1.11",
     "wrangler": "^4.126.0"
   },
   "dependencies": {

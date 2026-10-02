@@ -6,7 +6,8 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "noEmit": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["@cloudflare/vitest-plugin/types"]
   },
   "include": ["src/**/*.ts", "tests/**/*.ts"]
 }
