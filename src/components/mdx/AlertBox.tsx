@@ -1,5 +1,3 @@
-"use client";
-
 import { AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react";
 import { ReactNode } from "react";
 

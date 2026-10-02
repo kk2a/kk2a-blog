@@ -54,6 +54,7 @@ export const siteConfig = {
   navigation: [
     { name: "home", href: "/" },
     { name: "blog", href: "/blog" },
+    { name: "topics", href: "/topics" },
     { name: "kk2a", href: "/about" },
   ],
 } as const;

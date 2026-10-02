@@ -4,6 +4,7 @@ import { getPageData } from "@/lib/pages";
 import { mdxComponents } from "@/components/mdx/mdx-components";
 import { TableOfContents } from "@/components/TableOfContents";
 import { siteConfig } from "@/config/site";
+import { blogMdxOptions } from "@/lib/mdx-options";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -30,7 +31,11 @@ export default async function AboutPage() {
           {/* メインコンテンツ */}
           <div className="flex-1 min-w-0">
             <div className="prose prose-invert max-w-none">
-              <MDXRemote source={pageData.content} components={mdxComponents} />
+              <MDXRemote
+                source={pageData.content}
+                components={mdxComponents}
+                options={blogMdxOptions}
+              />
             </div>
 
             {/* 最終更新日 */}

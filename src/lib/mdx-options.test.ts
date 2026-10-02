@@ -18,4 +18,33 @@ describe("blog MDX options", () => {
       "const answer = 42;",
     );
   });
+
+  it("assigns stable unique IDs to duplicate headings", async () => {
+    const Heading = ({
+      children,
+      id,
+    }: {
+      children: ReactNode;
+      id?: string;
+    }) => React.createElement("h2", { id }, children);
+    const source = "## Same heading\n\n## Same heading";
+
+    const firstResult = await compileMDX({
+      source,
+      components: { h2: Heading },
+      options: blogMdxOptions,
+    });
+    const secondResult = await compileMDX({
+      source,
+      components: { h2: Heading },
+      options: blogMdxOptions,
+    });
+
+    const firstMarkup = renderToStaticMarkup(firstResult.content);
+    const secondMarkup = renderToStaticMarkup(secondResult.content);
+
+    expect(firstMarkup).toContain('id="same-heading"');
+    expect(firstMarkup).toContain('id="same-heading-1"');
+    expect(secondMarkup).toBe(firstMarkup);
+  });
 });
