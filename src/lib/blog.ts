@@ -11,7 +11,9 @@ import {
   getPostStatus,
   getTopicId,
   getTopicName,
+  getTopicMappings,
 } from "./id-mapping";
+import { getPublishedIds, getPublishedTopicIds } from "./publication";
 
 const contentDirectory = path.join(process.cwd(), "content/blog");
 
@@ -111,6 +113,11 @@ export function getAllTopics(): string[] {
   return getAllTopicNames();
 }
 
+export function getPublicTopicIds(): number[] {
+  const publicTopics = new Set(getPublicTopics());
+  return getPublishedTopicIds(getTopicMappings(), publicTopics);
+}
+
 export function getPublicPostsByCategory(category: string): BlogPost[] {
   const allPosts = getPublicPosts();
   return allPosts.filter((post) => post.categories.includes(category));
@@ -149,6 +156,12 @@ export function getAllCategories(): string[] {
   return Array.from(categories);
 }
 
+export function getPublicCategoryIds(): number[] {
+  return getPublicCategories()
+    .map((category) => getCategoryId(category))
+    .sort((a, b) => a - b);
+}
+
 export function getPublicTags(): string[] {
   const allPosts = getPublicPosts();
   const tags = new Set<string>();
@@ -165,6 +178,12 @@ export function getAllTags(): string[] {
     post.tags.forEach((tag) => tags.add(tag));
   });
   return Array.from(tags);
+}
+
+export function getPublicTagIds(): number[] {
+  return getPublicTags()
+    .map((tag) => getTagId(tag))
+    .sort((a, b) => a - b);
 }
 
 // ID管理のヘルパー関数
@@ -216,12 +235,13 @@ export function getAllBlogIds(): number[] {
 }
 
 export function getRegularBlogIds(): number[] {
-  return getAllPostIds()
-    .filter((id) => {
+  return getPublishedIds(
+    getAllPostIds().flatMap((id) => {
       const slug = getPostSlug(id);
-      return slug ? getPostStatus(slug) === "published" : false;
-    })
-    .sort((a, b) => a - b);
+      const status = slug ? getPostStatus(slug) : undefined;
+      return status ? [{ id, status }] : [];
+    }),
+  );
 }
 
 export function getTestBlogIds(): number[] {

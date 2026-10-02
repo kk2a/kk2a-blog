@@ -1,6 +1,6 @@
 // タグIDマッピング情報を返すAPIエンドポイント
 import { NextResponse } from "next/server";
-import { getAllTagIds, getTagFromId } from "@/lib/blog";
+import { getPublicTagIds, getTagFromId } from "@/lib/blog";
 
 // Static export対応
 export const dynamic = "force-static";
@@ -8,7 +8,7 @@ export const dynamic = "force-static";
 export async function GET() {
   try {
     // lib/blog.tsからタグID情報を取得
-    const tagIds = getAllTagIds();
+    const tagIds = getPublicTagIds();
 
     // ID → 名前のマッピングを構築
     const idToTag: Record<number, string> = {};

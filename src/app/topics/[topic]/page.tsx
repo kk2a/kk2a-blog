@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import BlogCard from "@/components/BlogCard";
-import { getAllTopics, getPublicPostsByTopic } from "@/lib/blog";
+import { getPublicTopics, getPublicPostsByTopic } from "@/lib/blog";
 import { siteConfig } from "@/config/site";
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function generateStaticParams() {
-  return getAllTopics().map((topic) => ({ topic }));
+  return getPublicTopics().map((topic) => ({ topic }));
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -24,7 +24,7 @@ export default async function TopicPage({ params }: Props) {
   const topic = decodeURIComponent((await params).topic);
   const posts = getPublicPostsByTopic(topic).reverse();
 
-  if (!getAllTopics().includes(topic)) notFound();
+  if (!getPublicTopics().includes(topic)) notFound();
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

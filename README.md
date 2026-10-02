@@ -115,7 +115,7 @@ pnpm test                # backend test
 
 既存の `0001_initial_schema.sql` は適用済みのD1 migrationとして保持し、今後のスキーマ変更は `pnpm --filter @kk2a/blog-api db:generate` でmigrationを生成します。
 
-記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。通常の新規記事はD1の自動採番を使い、`test-*` の記事は同期時にD1の状態から負数を自動採番します。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きの判定はIDの値ではなく `posts.status` を使います。
+記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。通常の新規記事はD1の自動採番を使い、`test-*` の記事は同期時にD1の状態から負数を自動採番します。通常のpostsとtopicsはD1のAUTOINCREMENTを使うため、削除済みのIDは再利用しません。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きの判定はIDの値ではなく `posts.status` を使い、productionの静的ページと公開用ID APIではdraft記事を除外します。
 
 MDXからD1のcontentデータを同期する場合は `pnpm prepare-content` を実行します。新しい記事のメタデータとtopicsを登録し、既存記事ではMDX本文のハッシュとパスだけを更新します。既存記事のtitle、date、excerpt、公開状態、topicsはD1側の値を保持します。seed SQLをGitに生成・保存することはありません。
 

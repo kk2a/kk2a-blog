@@ -1,4 +1,4 @@
-import { getAllTagIds, getPublicPostsByTag, getTagFromId } from "@/lib/blog";
+import { getPublicTagIds, getPublicPostsByTag, getTagFromId } from "@/lib/blog";
 import BlogCard from "@/components/BlogCard";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
@@ -8,7 +8,7 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const tagIds = getAllTagIds();
+  const tagIds = getPublicTagIds();
   return tagIds.map((tagId) => ({
     tag: tagId.toString(),
   }));
