@@ -42,7 +42,7 @@ MDXテンプレート作成スクリプト
   npm run create-mdx -- --slug about --type page
 
 注意:
-  title, categories, tags, excerpt は作成後に直接MDXファイルを編集してください。
+  title, topics, excerpt は作成後に直接MDXファイルを編集してください。
 `);
     process.exit(0);
   }
@@ -104,8 +104,7 @@ function generateBlogTemplate(): string {
     date,
     description: "記事の説明（SEO用）",
     excerpt: "記事の概要を記述してください",
-    categories: ["カテゴリ1", "カテゴリ2"],
-    tags: ["タグ1", "タグ2"],
+    topics: ["トピック1", "トピック2"],
     lastUpdated: date,
     contentHash,
   };

@@ -58,16 +58,12 @@ export function readPosts(contentDirectory: string): CurrentPost[] {
       const { data } = matter(
         fs.readFileSync(path.join(contentDirectory, fileName), "utf8"),
       );
-      const categories = Array.isArray(data.categories)
-        ? data.categories.filter(
-            (topic): topic is string => typeof topic === "string",
-          )
-        : [];
-      const tags = Array.isArray(data.tags)
-        ? data.tags.filter(
-            (topic): topic is string => typeof topic === "string",
-          )
-        : [];
+      if (!Array.isArray(data.topics)) {
+        throw new Error(`${fileName}: topics is required`);
+      }
+      const topics = data.topics.filter(
+        (topic): topic is string => typeof topic === "string",
+      );
 
       return {
         slug,
@@ -78,7 +74,7 @@ export function readPosts(contentDirectory: string): CurrentPost[] {
         lastUpdated:
           typeof data.lastUpdated === "string" ? data.lastUpdated : null,
         contentHash: requiredString(data.contentHash, "contentHash", fileName),
-        topics: [...new Set([...categories, ...tags])],
+        topics: [...new Set(topics)],
         status: slug.startsWith("test-") ? "draft" : "published",
       };
     });

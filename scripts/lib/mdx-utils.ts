@@ -12,8 +12,7 @@ export const BLOG_REQUIRED_FIELDS = [
   "date",
   "description",
   "excerpt",
-  "categories",
-  "tags",
+  "topics",
   "lastUpdated",
   "contentHash",
 ] as const;

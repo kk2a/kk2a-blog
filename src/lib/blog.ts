@@ -3,17 +3,13 @@ import path from "path";
 import matter from "gray-matter";
 import {
   getAllPostIds,
-  getAllTopicIds,
   getAllTopicNames,
   getPostId,
   getPostMapping,
   getPostSlug,
   getPostStatus,
-  getTopicId,
-  getTopicName,
-  getTopicMappings,
 } from "./id-mapping";
-import { getPublishedIds, getPublishedTopicIds } from "./publication";
+import { getPublishedIds } from "./publication";
 
 const contentDirectory = path.join(process.cwd(), "content/blog");
 
@@ -26,10 +22,6 @@ export interface BlogPost {
   content: string;
   status: "draft" | "published";
   topics: string[];
-  /** @deprecated Use topics. Kept while old URLs are migrated. */
-  categories: string[];
-  /** @deprecated Use topics. Kept while old URLs are migrated. */
-  tags: string[];
 }
 
 export function getAllPosts(): BlogPost[] {
@@ -72,14 +64,11 @@ export function getPostBySlug(slug: string): BlogPost | null {
   }
 
   const fileContents = fs.readFileSync(filePath, "utf8");
-  const { data, content } = matter(fileContents);
+  const { content } = matter(fileContents);
   const mapping = getPostMapping(slug);
   if (!mapping) {
     throw new Error(`D1 content mapping not found for post: ${slug}`);
   }
-
-  const categories = Array.isArray(data.categories) ? data.categories : [];
-  const tags = Array.isArray(data.tags) ? data.tags : [];
 
   return {
     slug,
@@ -90,8 +79,6 @@ export function getPostBySlug(slug: string): BlogPost | null {
     content,
     status: mapping.status,
     topics: mapping.topics.map((topic) => topic.name),
-    categories,
-    tags,
   };
 }
 
@@ -111,111 +98,6 @@ export function getPublicTopics(): string[] {
 
 export function getAllTopics(): string[] {
   return getAllTopicNames();
-}
-
-export function getPublicTopicIds(): number[] {
-  const publicTopics = new Set(getPublicTopics());
-  return getPublishedTopicIds(getTopicMappings(), publicTopics);
-}
-
-export function getPublicPostsByCategory(category: string): BlogPost[] {
-  const allPosts = getPublicPosts();
-  return allPosts.filter((post) => post.categories.includes(category));
-}
-
-export function getAllPostsByCategory(category: string): BlogPost[] {
-  const allPosts = getAllPosts();
-  return allPosts.filter((post) => post.categories.includes(category));
-}
-
-export function getPublicPostsByTag(tag: string): BlogPost[] {
-  const allPosts = getPublicPosts();
-  return allPosts.filter((post) => post.tags.includes(tag));
-}
-
-export function getAllPostsByTag(tag: string): BlogPost[] {
-  const allPosts = getAllPosts();
-  return allPosts.filter((post) => post.tags.includes(tag));
-}
-
-export function getPublicCategories(): string[] {
-  const allPosts = getPublicPosts();
-  const categories = new Set<string>();
-  allPosts.forEach((post) => {
-    post.categories.forEach((category) => categories.add(category));
-  });
-  return Array.from(categories);
-}
-
-export function getAllCategories(): string[] {
-  const allPosts = getAllPosts();
-  const categories = new Set<string>();
-  allPosts.forEach((post) => {
-    post.categories.forEach((category) => categories.add(category));
-  });
-  return Array.from(categories);
-}
-
-export function getPublicCategoryIds(): number[] {
-  return getPublicCategories()
-    .map((category) => getCategoryId(category))
-    .sort((a, b) => a - b);
-}
-
-export function getPublicTags(): string[] {
-  const allPosts = getPublicPosts();
-  const tags = new Set<string>();
-  allPosts.forEach((post) => {
-    post.tags.forEach((tag) => tags.add(tag));
-  });
-  return Array.from(tags);
-}
-
-export function getAllTags(): string[] {
-  const allPosts = getAllPosts();
-  const tags = new Set<string>();
-  allPosts.forEach((post) => {
-    post.tags.forEach((tag) => tags.add(tag));
-  });
-  return Array.from(tags);
-}
-
-export function getPublicTagIds(): number[] {
-  return getPublicTags()
-    .map((tag) => getTagId(tag))
-    .sort((a, b) => a - b);
-}
-
-// ID管理のヘルパー関数
-export function getTagId(tag: string): number {
-  const id = getTopicId(tag);
-  if (id === undefined) throw new Error(`トピックIDが見つかりません: ${tag}`);
-  return id;
-}
-
-export function getTagFromId(id: number): string | undefined {
-  return getTopicName(id);
-}
-
-export function getCategoryId(category: string): number {
-  const id = getTopicId(category);
-  if (id === undefined) {
-    throw new Error(`トピックIDが見つかりません: ${category}`);
-  }
-  return id;
-}
-
-export function getCategoryFromId(id: number): string | undefined {
-  return getTopicName(id);
-}
-
-// 静的生成用のID一覧を取得
-export function getAllTagIds(): number[] {
-  return getAllTopicIds();
-}
-
-export function getAllCategoryIds(): number[] {
-  return getAllTopicIds();
 }
 
 // ブログID管理のヘルパー関数

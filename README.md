@@ -51,14 +51,10 @@
 │       └── tests/            # API unit tests
 ├── src/
 │   ├── app/                  # Next.js App Router
-│   │   ├── api/             # 既存の静的互換 API Routes
-│   │   │   ├── categories/  # 旧カテゴリマッピングAPI
-│   │   │   ├── tags/        # 旧タグマッピングAPI
-│   │   │   └── id-mappings/ # 旧マッピング情報API
+│   │   ├── api/             # 静的API Routes
+│   │   │   └── blog-ids/    # 公開記事IDマッピングAPI
 │   │   ├── blog/            # ブログ記事関連ページ
-│   │   ├── categories/      # カテゴリページ
-│   │   ├── tags/            # タグページ
-│   │   ├── topics/           # 統合後の topics ページ
+│   │   ├── topics/          # topics別記事一覧
 │   │   ├── about/           # About ページ
 │   │   └── privacy-policy/  # プライバシーポリシー
 │   ├── components/          # Reactコンポーネント
@@ -72,6 +68,7 @@
 │   ├── lib/                 # 共通ユーティリティ
 │   │   └── mdx-utils.ts     # MDX関連の共通関数
 │   ├── create-mdx.ts        # MDXファイル作成
+│   ├── migrate-topics.ts    # 旧分類frontmatterの移行
 │   ├── sync-content.ts      # MDXとD1の差分同期
 │   ├── prepare-content.ts   # migration・content同期・ID同期
 │   ├── sync-id-mappings.ts  # D1のIDを静的ビルド用に同期
@@ -89,7 +86,6 @@
 - `/blog` - 記事一覧ページ
 - `/blog/[slug]` - 記事詳細ページ
 - `/topics/[topic]` - topics 別記事一覧
-- `/categories/[category]`, `/tags/[tag]` - 既存 URL の互換ページ
 - `/about` - 運営者情報
 - `/privacy-policy` - プライバシーポリシー
 
@@ -105,6 +101,7 @@ pnpm dev                 # Next.js 開発サーバー
 pnpm check               # formatter / linter / typecheck / test / MDX validation
 pnpm prepare-content     # migration・MDX同期・IDスナップショット生成
 pnpm content:edit        # D1の記事公開状態・topicsを編集
+pnpm topics:migrate      # 旧categories/tagsをtopicsへ一度だけ移行
 pnpm build               # D1へ書き込まず静的assetsを生成
 pnpm test                # backend test
 ```
@@ -118,6 +115,8 @@ pnpm test                # backend test
 記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。通常の新規記事はD1の自動採番を使い、`test-*` の記事は同期時にD1の状態から負数を自動採番します。通常のpostsとtopicsはD1のAUTOINCREMENTを使うため、削除済みのIDは再利用しません。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きの判定はIDの値ではなく `posts.status` を使い、productionの静的ページと公開用ID APIではdraft記事を除外します。
 
 MDXからD1のcontentデータを同期する場合は `pnpm prepare-content` を実行します。新しい記事のメタデータとtopicsを登録し、既存記事ではMDX本文のハッシュとパスだけを更新します。既存記事のtitle、date、excerpt、公開状態、topicsはD1側の値を保持します。seed SQLをGitに生成・保存することはありません。
+
+記事の分類は `topics` に統一しています。旧 `categories` と `tags` を含むMDXを移行する場合は、最初に `pnpm topics:migrate` を実行してください。移行後は `pnpm topics:migrate --check` で旧フィールドが残っていないことを確認できます。
 
 `pnpm build` はD1を書き換えません。事前に `pnpm prepare-content` を実行して、ビルドが読むローカルD1とIDスナップショットを用意してください。
 
@@ -176,7 +175,7 @@ pnpm create-mdx -- --slug about --type page
 **作成後の手順:**
 
 1. 生成されたMDXファイルを開く
-2. `title`, `description`, `excerpt`, `categories`, `tags` を編集
+2. `title`, `description`, `excerpt`, `topics` を編集
 3. コンテンツを記述
 4. `pnpm dev` で確認
 
@@ -193,7 +192,7 @@ pnpm validate-mdx
 
 **チェック項目:**
 
-- 必須フィールドの存在確認（title, date, description, excerpt, categories, tags, lastUpdated, contentHash）
+- 必須フィールドの存在確認（title, date, description, excerpt, topics, lastUpdated, contentHash）
 - date と lastUpdated がタイムゾーン付きISO8601形式か
 - contentHash が現在のコンテンツと一致するか
 
