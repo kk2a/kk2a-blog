@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   return (
@@ -21,6 +22,7 @@ export default function Header() {
                 {item.name}
               </Link>
             ))}
+            <ThemeToggle />
           </nav>
         </div>
       </div>

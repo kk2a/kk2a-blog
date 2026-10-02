@@ -23,19 +23,10 @@ import {
 } from "./index";
 import { GithubIcon, TwitterIcon } from "@/components/icons/SocialIcons";
 import { siteConfig } from "@/config/site";
-import { generateSlug } from "@/lib/toc";
 import React from "react";
 
 // サイト名を表示するコンポーネント
 const SiteName = () => siteConfig.name;
-
-// 見出しIDの重複を防ぐためのカウンター
-let headingCounter = 0;
-
-// ユニークなIDを生成する関数
-const generateUniqueId = (baseId: string): string => {
-  return baseId + `-${headingCounter++}`;
-};
 
 // 見出しコンポーネント作成関数
 const createHeading = (level: number, className: string) => {
@@ -48,25 +39,9 @@ const createHeading = (level: number, className: string) => {
     id?: string;
     [key: string]: unknown;
   }) => {
-    // 外部から渡されたIDがある場合はそれを使用（ユニーク性をチェック）
-    let headingId = id;
-
-    if (headingId) {
-      headingId = generateUniqueId(headingId);
-    } else if (typeof children === "string") {
-      // children（テキスト）からスラッグを生成
-      const slug = generateSlug(children);
-      const baseId = slug || `heading`;
-      headingId = generateUniqueId(baseId);
-    } else {
-      // childrenが文字列でない場合（JSX要素など）
-      const baseId = `heading`;
-      headingId = generateUniqueId(baseId);
-    }
-
     return React.createElement(
       `h${level}`,
-      { id: headingId, className, ...props },
+      { ...(id ? { id } : {}), className, ...props },
       children
     );
   };
