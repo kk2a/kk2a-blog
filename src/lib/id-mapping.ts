@@ -64,22 +64,6 @@ export function getAllPostIds(): number[] {
   return loadMappings().posts.map((post) => post.id);
 }
 
-export function getTopicId(name: string): number | undefined {
-  return loadMappings().topics.find((topic) => topic.name === name)?.id;
-}
-
-export function getTopicName(id: number): string | undefined {
-  return loadMappings().topics.find((topic) => topic.id === id)?.name;
-}
-
-export function getAllTopicIds(): number[] {
-  return loadMappings().topics.map((topic) => topic.id);
-}
-
 export function getAllTopicNames(): string[] {
   return loadMappings().topics.map((topic) => topic.name);
-}
-
-export function getTopicMappings(): TopicMapping[] {
-  return loadMappings().topics;
 }

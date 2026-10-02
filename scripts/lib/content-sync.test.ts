@@ -48,7 +48,7 @@ afterEach(() => {
 });
 
 describe("content synchronization", () => {
-  it("extracts and merges topics from blog frontmatter", () => {
+  it("extracts topics from blog frontmatter", () => {
     const directory = fs.mkdtempSync(
       path.join(os.tmpdir(), "kk2a-blog-content-sync-test-"),
     );
@@ -61,8 +61,7 @@ date: "2026-01-01T00:00:00+09:00"
 description: Description
 excerpt: Excerpt
 contentHash: hash
-categories: [技術, MDX]
-tags: [MDX, SQLite]
+topics: [技術, MDX, MDX, SQLite]
 ---
 
 本文

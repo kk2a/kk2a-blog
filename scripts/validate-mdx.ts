@@ -57,14 +57,15 @@ function validateMdxFile(filePath: string): ValidationError | null {
         }
       }
 
-      // categories配列チェック
-      if (data.categories && !Array.isArray(data.categories)) {
-        errors.push("categories フィールドは配列である必要があります");
+      // topics配列チェック
+      if (data.topics && !Array.isArray(data.topics)) {
+        errors.push("topics フィールドは配列である必要があります");
       }
 
-      // tags配列チェック
-      if (data.tags && !Array.isArray(data.tags)) {
-        errors.push("tags フィールドは配列である必要があります");
+      if (data.categories !== undefined || data.tags !== undefined) {
+        errors.push(
+          "categories / tags は廃止されています。topics フィールドへ移行してください",
+        );
       }
     } else {
       for (const field of PAGE_REQUIRED_FIELDS) {
