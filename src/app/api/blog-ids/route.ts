@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import {
-  getAllBlogIds,
   getBlogSlugFromId,
   getRegularBlogIds,
-  getTestBlogIds,
 } from "@/lib/blog";
 
 // Static export対応
@@ -12,9 +10,8 @@ export const dynamic = "force-static";
 export async function GET() {
   try {
     // lib/blog.tsからブログID情報を取得
-    const allIds = getAllBlogIds();
     const regularIds = getRegularBlogIds();
-    const testIds = getTestBlogIds();
+    const allIds = regularIds;
 
     // ID → スラグのマッピングを構築
     const idToSlug: Record<number, string> = {};
@@ -38,12 +35,8 @@ export async function GET() {
         ids: regularIds,
         count: regularIds.length,
       },
-      test: {
-        ids: testIds,
-        count: testIds.length,
-      },
       message: "IDベースのブログマッピング情報",
-      note: "正の数: 通常記事, 負の数: テスト/実験用記事",
+      note: "公開済み記事のみを返します",
     };
 
     return NextResponse.json(blogMapping, {

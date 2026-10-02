@@ -1,5 +1,5 @@
 import {
-  getAllCategoryIds,
+  getPublicCategoryIds,
   getPublicPostsByCategory,
   getCategoryFromId,
 } from "@/lib/blog";
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const categoryIds = getAllCategoryIds();
+  const categoryIds = getPublicCategoryIds();
   return categoryIds.map((categoryId) => ({
     category: categoryId.toString(),
   }));

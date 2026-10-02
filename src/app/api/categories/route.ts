@@ -1,6 +1,6 @@
 // カテゴリIDマッピング情報を返すAPIエンドポイント
 import { NextResponse } from "next/server";
-import { getAllCategoryIds, getCategoryFromId } from "@/lib/blog";
+import { getCategoryFromId, getPublicCategoryIds } from "@/lib/blog";
 
 // Static export対応
 export const dynamic = "force-static";
@@ -8,7 +8,7 @@ export const dynamic = "force-static";
 export async function GET() {
   try {
     // lib/blog.tsからカテゴリID情報を取得
-    const categoryIds = getAllCategoryIds();
+    const categoryIds = getPublicCategoryIds();
 
     // ID → 名前のマッピングを構築
     const idToCategory: Record<number, string> = {};

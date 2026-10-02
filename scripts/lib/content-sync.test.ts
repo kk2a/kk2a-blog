@@ -99,6 +99,33 @@ tags: [MDX, SQLite]
     );
   });
 
+  it("does not assign a new ID to a regular post already in D1", () => {
+    const existing = existingPost("hello", 42);
+
+    expect(
+      assignPostIds(
+        [currentPost("hello"), currentPost("new-post")],
+        [existing],
+      ),
+    ).toEqual(new Map());
+  });
+
+  it("keeps an existing regular post row when its MDX metadata changes", () => {
+    const current = {
+      ...currentPost("hello"),
+      title: "Updated title",
+      date: "2026-02-01T00:00:00+09:00",
+      contentHash: "updated-hash",
+    };
+    const sql = renderSyncSql([current], [existingPost("hello", 42)], "commit");
+
+    expect(sql).toContain(
+      "INSERT INTO posts (slug, title, date, description, excerpt, last_updated, content_hash, content_path, status)",
+    );
+    expect(sql).not.toContain("DELETE FROM posts WHERE id = 42");
+    expect(sql).not.toContain("INSERT INTO posts (id,");
+  });
+
   it("moves an existing positive test ID to a negative ID", () => {
     expect(
       assignPostIds(

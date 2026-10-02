@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import Link from "next/link";
-import { getAllBlogIds, getBlogPostById } from "@/lib/blog";
+import { getBlogPostById, getRegularBlogIds } from "@/lib/blog";
 import { mdxComponents } from "@/components/mdx/mdx-components";
 import { FootnoteProvider } from "@/components/mdx/Footnote";
 import { ReferenceProvider } from "@/components/mdx/Reference";
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const blogIds = getAllBlogIds();
+  const blogIds = getRegularBlogIds();
   return blogIds.map((blogId) => ({
     id: blogId.toString(),
   }));
