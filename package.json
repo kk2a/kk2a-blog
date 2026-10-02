@@ -41,7 +41,7 @@
     "gray-matter": "^4.0.3",
     "katex": "^0.16.22",
     "lucide-react": "^0.539.0",
-    "next": "^16.3.3",
+    "next": "^16.3.8",
     "next-mdx-remote": "^6.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -61,15 +61,15 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "eslint": "^9",
+    "eslint": "^9.39.5",
     "eslint-config-next": "15.4.6",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5",
-    "vitest": "^3.2.7",
-    "wrangler": "^4.30.0"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.146.0"
   },
   "lint-staged": {
     "content/**/*.mdx": [
