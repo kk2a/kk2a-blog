@@ -11,7 +11,7 @@
 - **レスポンシブデザイン**: Tailwind CSS によるモバイルファーストデザイン
 - **静的サイト生成**: 高速なページ表示
 - **Topics**: 旧カテゴリとタグを統合した記事の分類と検索
-- **日本語 URL 対応**: SHA-256 ハッシュ化による安全な日本語カテゴリ・タグ URL
+- **安定した記事 URL**: D1で管理する連番IDを記事URLに使用
 - **独自ドメイン**: Cloudflare DNS による独自ドメインでのアクセス
 - **SEO 最適化**: メタデータと OpenGraph 対応
 
@@ -35,7 +35,7 @@
 
 - **静的サイト生成**: Next.js の `output: "export"` で静的ファイルを生成
 - **独自ドメイン対応**: Cloudflare DNS 経由で独自ドメインからアクセス可能
-- **日本語 URL 対応**: カテゴリ・タグの SHA-256 ハッシュ化による URL 安全化
+- **topics URL 対応**: topics名をURLエンコードして一覧ページへ遷移
 - **カスタム API**: `apps/api` の Worker が `/api/v1/*` を処理
 - **DB 管理**: `posts`、`topics`、`post_topics` を D1 migration で管理
 - **高速配信**: Cloudflare のグローバルネットワークによる高速配信
@@ -54,27 +54,29 @@
 │   │   ├── api/             # 静的API Routes
 │   │   │   └── blog-ids/    # 公開記事IDマッピングAPI
 │   │   ├── blog/            # ブログ記事関連ページ
-│   │   ├── topics/          # topics別記事一覧
+│   │   ├── topics/          # topics一覧とtopics別記事一覧
 │   │   ├── about/           # About ページ
 │   │   └── privacy-policy/  # プライバシーポリシー
 │   ├── components/          # Reactコンポーネント
 │   │   ├── Header.tsx       # ヘッダー
 │   │   ├── Footer.tsx       # フッター
-│   │   └── BlogCard.tsx     # 記事カード
+│   │   ├── BlogCard.tsx      # 記事カード
+│   │   └── mdx/              # MDX用コンポーネント
 │   ├── lib/                 # ユーティリティ関数
-│   │   ├── blog.ts          # 記事管理関数
-│   │   └── hash.ts          # SHA-256ハッシュ化ユーティリティ
+│   │   ├── blog.ts           # 記事管理関数
+│   │   ├── id-mapping.ts     # D1 IDスナップショットの読み込み
+│   │   └── publication.ts    # 公開状態の判定
 ├── scripts/                 # スクリプト
 │   ├── lib/                 # 共通ユーティリティ
 │   │   └── mdx-utils.ts     # MDX関連の共通関数
 │   ├── create-mdx.ts        # MDXファイル作成
+│   ├── edit-content.ts      # D1の記事メタデータ編集
 │   ├── migrate-topics.ts    # 旧分類frontmatterの移行
 │   ├── sync-content.ts      # MDXとD1の差分同期
 │   ├── prepare-content.ts   # migration・content同期・ID同期
 │   ├── sync-id-mappings.ts  # D1のIDを静的ビルド用に同期
 │   ├── update-mdx-metadata.ts # メタデータ更新
-│   ├── validate-mdx.ts      # MDXバリデーション
-│   └── migrate-mdx-dates.ts # 日付マイグレーション
+│   └── validate-mdx.ts      # MDXバリデーション
 ├── content/
 │   └── blog/                # MDX記事ファイル
 └── public/                  # 静的ファイル
@@ -84,10 +86,12 @@
 
 - `/` - ホームページ（最新記事の表示）
 - `/blog` - 記事一覧ページ
-- `/blog/[slug]` - 記事詳細ページ
+- `/blog/[id]` - 記事詳細ページ
+- `/topics` - topics一覧ページ
 - `/topics/[topic]` - topics 別記事一覧
 - `/about` - 運営者情報
 - `/privacy-policy` - プライバシーポリシー
+- `/api/blog-ids` - 静的生成された公開記事IDマッピング
 
 ## 開発ツール
 
@@ -103,7 +107,7 @@ pnpm prepare-content     # migration・MDX同期・IDスナップショット生
 pnpm content:edit        # D1の記事公開状態・topicsを編集
 pnpm topics:migrate      # 旧categories/tagsをtopicsへ一度だけ移行
 pnpm build               # D1へ書き込まず静的assetsを生成
-pnpm test                # backend test
+pnpm test                # scripts と backend のテスト
 ```
 
 ### MDX と D1 の責務
@@ -114,7 +118,7 @@ pnpm test                # backend test
 
 記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。通常の新規記事はD1の自動採番を使い、`test-*` の記事は同期時にD1の状態から負数を自動採番します。通常のpostsとtopicsはD1のAUTOINCREMENTを使うため、削除済みのIDは再利用しません。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きの判定はIDの値ではなく `posts.status` を使い、productionの静的ページと公開用ID APIではdraft記事を除外します。
 
-MDXからD1のcontentデータを同期する場合は `pnpm prepare-content` を実行します。新しい記事のメタデータとtopicsを登録し、既存記事ではMDX本文のハッシュとパスだけを更新します。既存記事のtitle、date、excerpt、公開状態、topicsはD1側の値を保持します。seed SQLをGitに生成・保存することはありません。
+MDXからD1の記事メタデータを同期する場合は `pnpm prepare-content` を実行します。新しい記事のメタデータとtopicsを登録し、既存記事ではMDX本文のハッシュとパスだけを更新します。既存記事のtitle、date、excerpt、公開状態、topicsはD1側の値を保持します。seed SQLをGitに生成・保存することはありません。
 
 記事の分類は `topics` に統一しています。旧 `categories` と `tags` を含むMDXを移行する場合は、最初に `pnpm topics:migrate` を実行してください。移行後は `pnpm topics:migrate --check` で旧フィールドが残っていないことを確認できます。
 
@@ -179,7 +183,11 @@ pnpm create-mdx -- --slug about --type page
 3. コンテンツを記述
 4. `pnpm dev` で確認
 
-詳しい使い方は [docs/create-mdx-guide.md](docs/create-mdx-guide.md) を参照してください。
+詳細なオプションは次のコマンドで確認できます。
+
+```bash
+pnpm create-mdx -- --help
+```
 
 ### MDX バリデーション
 
@@ -225,4 +233,4 @@ MDX関連スクリプトで共通して使用される関数群：
 - `isISOWithTimezone(dateString)` - 日付文字列がISO8601形式かチェック
 - `convertDateToISO(dateString)` - 日付文字列をISO8601形式に変換
 
-これらの関数は各スクリプト（create-mdx, update-mdx-metadata, validate-mdx, migrate-mdx-dates）で共通利用されています。
+これらの関数は `create-mdx`、`update-mdx-metadata`、`validate-mdx` などのスクリプトで共通利用されています。

@@ -26,7 +26,7 @@ function parseArgs(): {
 MDXテンプレート作成スクリプト
 
 使用方法:
-  npm run create-mdx -- --slug <slug> [オプション]
+  pnpm create-mdx -- --slug <slug> [オプション]
 
 オプション:
   --slug, -s <slug>   ファイル名（必須）
@@ -35,11 +35,11 @@ MDXテンプレート作成スクリプト
 
 例:
   # ブログ記事を作成
-  npm run create-mdx -- --slug my-article
-  npm run create-mdx -- -s stern-brocot-tree
+  pnpm create-mdx -- --slug my-article
+  pnpm create-mdx -- -s stern-brocot-tree
   
   # ページを作成
-  npm run create-mdx -- --slug about --type page
+  pnpm create-mdx -- --slug about --type page
 
 注意:
   title, topics, excerpt は作成後に直接MDXファイルを編集してください。
