@@ -1,0 +1,62 @@
+{
+  "name": "@kk2a/blog-web",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.8.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "db:migrate:local": "pnpm --filter @kk2a/blog-api db:migrate:local",
+    "db:migrate:remote": "pnpm --filter @kk2a/blog-api db:migrate:remote",
+    "sync-id-mappings": "tsx scripts/sync-id-mappings.ts",
+    "content:sync": "tsx scripts/sync-content.ts",
+    "content:edit": "tsx scripts/edit-content.ts",
+    "topics:migrate": "tsx scripts/migrate-topics.ts",
+    "prepare-content": "tsx scripts/prepare-content.ts",
+    "prepare-content:overwrite": "tsx scripts/prepare-content.ts --overwrite",
+    "create-mdx": "tsx scripts/create-mdx.ts",
+    "validate-mdx": "tsx scripts/validate-mdx.ts",
+    "predev": "pnpm prepare-content",
+    "dev": "next dev --webpack --hostname 0.0.0.0",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint:eslint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test:scripts": "vitest run --config vitest.config.ts",
+    "test": "pnpm test:scripts"
+  },
+  "dependencies": {
+    "@radix-ui/react-hover-card": "^1.1.15",
+    "@tailwindcss/typography": "^0.5.16",
+    "gray-matter": "^4.0.3",
+    "katex": "^0.16.22",
+    "lucide-react": "^0.539.0",
+    "next": "^16.3.8",
+    "next-mdx-remote": "^6.0.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-syntax-highlighter": "^16.1.0",
+    "rehype-katex": "^7.0.1",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250813.0",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/katex": "^0.16.7",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "15.4.6",
+    "tailwindcss": "^4",
+    "tsx": "^4.20.6",
+    "typescript": "^5",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.146.0"
+  }
+}

@@ -16,7 +16,6 @@ const eslintConfig = [
     "out/**",
     "node_modules/**",
     "data/**",
-    "apps/api/src/worker-configuration.d.ts",
   ]),
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
