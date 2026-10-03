@@ -1,44 +1,39 @@
 # 死人に口なし
 
-ブログが欲しいなと思ったので作りました．
+ブログが欲しくなったので作りました。
 
 ## 特徴
 
-- **Modern Stack**: Next.js 16 + React 19 + TypeScript
-- **pnpm Monorepo**: Web と Cloudflare Worker API を同一リポジトリで管理
-- **MDX Support**: Markdown 記法で React コンポーネントを使用可能
-- **D1 Content API**: 記事メタデータと topics を Cloudflare D1 で管理
-- **レスポンシブデザイン**: Tailwind CSS によるモバイルファーストデザイン
-- **静的サイト生成**: 高速なページ表示
-- **Topics**: 旧カテゴリとタグを統合した記事の分類と検索
-- **日本語 URL 対応**: SHA-256 ハッシュ化による安全な日本語カテゴリ・タグ URL
-- **独自ドメイン**: Cloudflare DNS による独自ドメインでのアクセス
-- **SEO 最適化**: メタデータと OpenGraph 対応
+Next.js 16、React 19、TypeScriptで構築しています。WebとCloudflare Worker APIは、pnpmのmonorepoで同じリポジトリにまとめています。
+
+記事はMDXで記述でき、MDX内ではReactコンポーネントも利用できます。記事本文や画像などのコンテンツはGitに置き、記事メタデータとtopicsはCloudflare D1で管理します。
+
+ページは静的サイトとして生成し、Tailwind CSSによるモバイルファーストのレスポンシブデザインで表示します。旧カテゴリとタグはtopicsに統合して記事の分類と検索に使い、D1で管理する連番IDを記事URLに使います。Cloudflare DNSによる独自ドメイン、メタデータ、OpenGraphにも対応しています。
 
 ## 技術スタック
 
-- **フレームワーク**: [Next.js 16](https://nextjs.org/) (App Router)
-- **ライブラリ**: [React 19](https://reactjs.org/)
-- **言語**: [TypeScript](https://www.typescriptlang.org/)
-- **スタイリング**: [Tailwind CSS](https://tailwindcss.com/)
-- **記事形式**: [MDX](https://mdxjs.com/)
-- **ホスティング**: [Cloudflare Workers](https://workers.cloudflare.com/) + [D1](https://developers.cloudflare.com/d1/)
-- **DBアクセス**: [Drizzle ORM](https://orm.drizzle.team/) + Cloudflare D1
+- フレームワーク: [Next.js 16](https://nextjs.org/) (App Router)
+- ライブラリ: [React 19](https://reactjs.org/)
+- 言語: [TypeScript](https://www.typescriptlang.org/)
+- スタイリング: [Tailwind CSS](https://tailwindcss.com/)
+- 記事形式: [MDX](https://mdxjs.com/)
+- ホスティング: [Cloudflare Workers](https://workers.cloudflare.com/) + [D1](https://developers.cloudflare.com/d1/)
+- DBアクセス: [Drizzle ORM](https://orm.drizzle.team/) + Cloudflare D1
 
 ## ホスティング・デプロイメント
 
 ### Cloudflare Workers 構成
 
-このブログは、Next.js の静的 assets と D1 API を 1 つの Cloudflare Worker から配信します。
+このブログは、Next.jsの静的assetsとD1 APIを1つのCloudflare Workerから配信します。
 
 #### 主な特徴
 
-- **静的サイト生成**: Next.js の `output: "export"` で静的ファイルを生成
-- **独自ドメイン対応**: Cloudflare DNS 経由で独自ドメインからアクセス可能
-- **日本語 URL 対応**: カテゴリ・タグの SHA-256 ハッシュ化による URL 安全化
-- **カスタム API**: `apps/api` の Worker が `/api/v1/*` を処理
-- **DB 管理**: `posts`、`topics`、`post_topics` を D1 migration で管理
-- **高速配信**: Cloudflare のグローバルネットワークによる高速配信
+- 静的サイト生成: Next.jsの `output: "export"` で静的ファイルを生成
+- 独自ドメイン対応: Cloudflare DNS経由で独自ドメインからアクセス可能
+- topics URL対応: topics名をURLエンコードして一覧ページへ遷移
+- カスタムAPI: `apps/api` のWorkerが `/api/v1/*` を処理
+- DB管理: `posts`、`topics`、`post_topics` をD1 migrationで管理
+- 高速配信: Cloudflareのグローバルネットワークから配信
 
 ## ディレクトリ構造
 
@@ -54,27 +49,29 @@
 │   │   ├── api/             # 静的API Routes
 │   │   │   └── blog-ids/    # 公開記事IDマッピングAPI
 │   │   ├── blog/            # ブログ記事関連ページ
-│   │   ├── topics/          # topics別記事一覧
+│   │   ├── topics/          # topics一覧とtopics別記事一覧
 │   │   ├── about/           # About ページ
 │   │   └── privacy-policy/  # プライバシーポリシー
 │   ├── components/          # Reactコンポーネント
 │   │   ├── Header.tsx       # ヘッダー
 │   │   ├── Footer.tsx       # フッター
-│   │   └── BlogCard.tsx     # 記事カード
+│   │   ├── BlogCard.tsx      # 記事カード
+│   │   └── mdx/              # MDX用コンポーネント
 │   ├── lib/                 # ユーティリティ関数
 │   │   ├── blog.ts          # 記事管理関数
-│   │   └── hash.ts          # SHA-256ハッシュ化ユーティリティ
+│   │   ├── id-mapping.ts    # D1 IDスナップショットの読み込み
+│   │   └── publication.ts   # 公開状態の判定
 ├── scripts/                 # スクリプト
 │   ├── lib/                 # 共通ユーティリティ
 │   │   └── mdx-utils.ts     # MDX関連の共通関数
 │   ├── create-mdx.ts        # MDXファイル作成
+│   ├── edit-content.ts      # D1の記事メタデータ編集
 │   ├── migrate-topics.ts    # 旧分類frontmatterの移行
 │   ├── sync-content.ts      # MDXとD1の差分同期
 │   ├── prepare-content.ts   # migration・content同期・ID同期
 │   ├── sync-id-mappings.ts  # D1のIDを静的ビルド用に同期
 │   ├── update-mdx-metadata.ts # メタデータ更新
-│   ├── validate-mdx.ts      # MDXバリデーション
-│   └── migrate-mdx-dates.ts # 日付マイグレーション
+│   └── validate-mdx.ts      # MDXバリデーション
 ├── content/
 │   └── blog/                # MDX記事ファイル
 └── public/                  # 静的ファイル
@@ -84,16 +81,18 @@
 
 - `/` - ホームページ（最新記事の表示）
 - `/blog` - 記事一覧ページ
-- `/blog/[slug]` - 記事詳細ページ
-- `/topics/[topic]` - topics 別記事一覧
+- `/blog/[id]` - 記事詳細ページ
+- `/topics` - topics一覧ページ
+- `/topics/[topic]` - topics別記事一覧
 - `/about` - 運営者情報
 - `/privacy-policy` - プライバシーポリシー
+- `/api/blog-ids` - 静的生成された公開記事IDマッピング
 
 ## 開発ツール
 
 ### 開発コマンド
 
-依存関係の管理には pnpm を使用します。
+依存関係の管理にはpnpmを使います。
 
 ```bash
 pnpm install
@@ -103,18 +102,20 @@ pnpm prepare-content     # migration・MDX同期・IDスナップショット生
 pnpm content:edit        # D1の記事公開状態・topicsを編集
 pnpm topics:migrate      # 旧categories/tagsをtopicsへ一度だけ移行
 pnpm build               # D1へ書き込まず静的assetsを生成
-pnpm test                # backend test
+pnpm test                # scripts と backend のテスト
 ```
 
 ### MDX と D1 の責務
 
-記事本文と画像などのコンテンツは、引き続き `content/blog/*.mdx` と Git で管理します。記事の公開状態、表示用メタデータ、topics は D1 の `posts` / `topics` / `post_topics` に同期します。
+記事本文や画像などのコンテンツは、引き続き `content/blog/*.mdx` とGitで管理します。記事の公開状態、表示用メタデータ、topicsはD1の `posts` / `topics` / `post_topics` へ同期します。
 
 既存の `0001_initial_schema.sql` は適用済みのD1 migrationとして保持し、今後のスキーマ変更は `pnpm --filter @kk2a/blog-api db:generate` でmigrationを生成します。
 
-記事と topics のIDはD1の主キーを使います。ローカル開発・CIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時同期します。このファイルはGit管理しません。通常の新規記事はD1の自動採番を使い、`test-*` の記事は同期時にD1の状態から負数を自動採番します。通常のpostsとtopicsはD1のAUTOINCREMENTを使うため、削除済みのIDは再利用しません。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きの判定はIDの値ではなく `posts.status` を使い、productionの静的ページと公開用ID APIではdraft記事を除外します。
+記事とtopicsのIDにはD1の主キーを使います。ローカル開発とCIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時的に同期します。このファイルはGitで管理しません。
 
-MDXからD1のcontentデータを同期する場合は `pnpm prepare-content` を実行します。新しい記事のメタデータとtopicsを登録し、既存記事ではMDX本文のハッシュとパスだけを更新します。既存記事のtitle、date、excerpt、公開状態、topicsはD1側の値を保持します。seed SQLをGitに生成・保存することはありません。
+通常の記事にはD1の自動採番を使い、`test-*` の記事には同期時にD1の状態から負数を自動採番します。通常のpostsとtopicsはD1のAUTOINCREMENTを使うため、削除済みのIDは再利用しません。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きはIDの値ではなく `posts.status` で判定し、productionの静的ページと公開用ID APIではdraft記事を除外します。
+
+MDXの差分をD1の記事メタデータへ反映するには、`pnpm prepare-content` を使います。新しい記事ではメタデータとtopicsを登録し、既存記事ではMDX本文のハッシュとパスだけを更新します。既存記事のtitle、date、excerpt、公開状態、topicsはD1側の値を保持します。seed SQLをGitに生成・保存する運用はありません。
 
 記事の分類は `topics` に統一しています。旧 `categories` と `tags` を含むMDXを移行する場合は、最初に `pnpm topics:migrate` を実行してください。移行後は `pnpm topics:migrate --check` で旧フィールドが残っていないことを確認できます。
 
@@ -140,9 +141,9 @@ pnpm content:edit -- --remote --slug my-article --publish --yes
 pnpm content:edit -- --remote --slug my-article --topic TypeScript --topic Next.js --yes
 ```
 
-`content:edit` はデフォルトでlocal D1を対象にします。`--remote` を指定した更新には `--yes` が必要です。`--dry-run` を付けるとSQLだけを表示し、D1を変更しません。更新前のD1 exportは `.local/d1-backups/` に保存されます。
+`content:edit` はデフォルトでlocal D1を対象にします。`--remote` を指定した更新には `--yes` が必要です。`--dry-run` を付けるとSQLだけを表示し、D1を変更しません。更新前のD1 exportは `.local/d1-backups/` に保存します。
 
-API は次の read endpoint を提供します。
+APIでは、次のread endpointを提供します。
 
 - `GET /api/v1/posts?limit=20&offset=0`
 - `GET /api/v1/posts/:slug`
@@ -157,11 +158,11 @@ pnpm --filter @kk2a/blog-api db:migrate:local
 pnpm --filter @kk2a/blog-api db:migrate:remote
 ```
 
-リモートへ適用する前に、`wrangler.jsonc` の `d1_databases[0].database_id` に作成した UUID を設定してください。Workers Builds側にD1 migrationを実行できるCloudflare API tokenを設定します。
+リモートへ適用する前に、`wrangler.jsonc` の `d1_databases[0].database_id` に作成したUUIDを設定してください。Workers Builds側には、D1 migrationを実行できるCloudflare API tokenを設定します。
 
 ### MDX テンプレート作成スクリプト
 
-新しいブログ記事やページを簡単に作成できるテンプレート生成スクリプトを用意しています。
+新しいブログ記事やページを作るテンプレート生成スクリプトを用意しています。
 
 ```bash
 # ブログ記事を作成
@@ -172,57 +173,63 @@ pnpm create-mdx -- -s stern-brocot-tree
 pnpm create-mdx -- --slug about --type page
 ```
 
-**作成後の手順:**
+作成後の作業は、次のとおりです。
 
 1. 生成されたMDXファイルを開く
 2. `title`, `description`, `excerpt`, `topics` を編集
 3. コンテンツを記述
 4. `pnpm dev` で確認
 
-詳しい使い方は [docs/create-mdx-guide.md](docs/create-mdx-guide.md) を参照してください。
+詳しいオプションは、次のコマンドで確認できます。
+
+```bash
+pnpm create-mdx -- --help
+```
 
 ### MDX バリデーション
 
-MDXファイルが正しいフォーマットと必須フィールドを持っているかチェックできます。
+MDXファイルの形式と必須フィールドを検証できます。
 
 ```bash
 # すべてのMDXファイルをバリデーション
 pnpm validate-mdx
 ```
 
-**チェック項目:**
+次の項目を確認します。
 
 - 必須フィールドの存在確認（title, date, description, excerpt, topics, lastUpdated, contentHash）
-- date と lastUpdated がタイムゾーン付きISO8601形式か
+- dateとlastUpdatedがタイムゾーン付きISO8601形式か
 - contentHash が現在のコンテンツと一致するか
 
 ### 自動更新とCI/CD
 
-**pre-commitフック:**
+#### pre-commitフック
 
-コミット時に自動実行される処理：
+コミット時には、次の処理を実行します。
 1. ステージングされたMDXファイルのメタデータを自動フォーマット（フィールドの順序を標準化）
 2. コンテンツが変更された場合、`lastUpdated` と `contentHash` を自動更新
 3. 更新されたファイルを自動的に再ステージング
 4. すべてのMDXファイルをバリデーション（エラーがある場合はコミットを中断）
 
-**GitHub Actions CI (`.github/workflows/ci.yml`):**
+#### GitHub Actions CI (`.github/workflows/ci.yml`)
+
+次の項目を確認します。
 
 - MDXファイルのバリデーション
 - Biome formatter/linter
-- frontend/backend の TypeScript check
-- backend API の Vitest test
-- ビルド確認
+- frontend/backendのTypeScript check
+- backend APIのVitest test
+- ビルド
 
-Cloudflare Workers Buildsでmainへのpushを起点にデプロイします。Build commandは `D1_DATABASE_LOCATION=remote pnpm prepare-content && pnpm build`、Deploy commandは `pnpm exec wrangler deploy` を指定します。Build commandの前半でschema migration、MDXからD1へのcontent同期、remote D1からのID同期を実行し、後半のbuildはD1を書き換えずに静的assetsを生成します。
+Cloudflare Workers Buildsは、mainへのpushを起点にデプロイします。Build commandには `D1_DATABASE_LOCATION=remote pnpm prepare-content && pnpm build` を、Deploy commandには `pnpm exec wrangler deploy` を指定します。Build commandの前半でschema migration、MDXからD1へのcontent同期、remote D1からのID同期を実行し、後半でD1を書き換えずに静的assetsを生成します。
 
-### 共通ユーティリティ (scripts/lib/mdx-utils.ts)
+### 共通ユーティリティ (`scripts/lib/mdx-utils.ts`)
 
-MDX関連スクリプトで共通して使用される関数群：
+MDX関連スクリプトでは、次の関数を共通して使います。
 
 - `calculateHash(content)` - コンテンツのSHA256ハッシュを計算
 - `getCurrentDateISO()` - タイムゾーン付きISO8601形式の現在日時を取得
 - `isISOWithTimezone(dateString)` - 日付文字列がISO8601形式かチェック
 - `convertDateToISO(dateString)` - 日付文字列をISO8601形式に変換
 
-これらの関数は各スクリプト（create-mdx, update-mdx-metadata, validate-mdx, migrate-mdx-dates）で共通利用されています。
+これらの関数は、`create-mdx`、`update-mdx-metadata`、`validate-mdx` などのスクリプトで共通して使われています。
