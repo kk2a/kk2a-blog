@@ -15,9 +15,9 @@
 /coverage
 
 # next.js
-/.next/
-/out/
-/.open-next/
+**/.next/
+**/out/
+**/.open-next/
 
 # production
 /build
@@ -44,9 +44,9 @@ next-env.d.ts
 
 # cloudflare
 .wrangler/
-.local/
+**/.local/
 
 # build-time D1 ID mapping snapshot
-/data/
+**/data/
 
 /apps/api/src/worker-configuration.d.ts

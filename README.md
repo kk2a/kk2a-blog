@@ -39,42 +39,19 @@ Next.js 16、React 19、TypeScriptで構築しています。WebとCloudflare Wo
 
 ```
 ├── apps/
-│   └── api/                  # D1 を利用する Cloudflare Worker API
-│       ├── src/              # API と DB クエリ
-│       ├── migrations/       # D1 migrations generated from schema.ts
-│       ├── drizzle.config.ts # Drizzle Kit configuration
-│       └── tests/            # API unit tests
-├── src/
-│   ├── app/                  # Next.js App Router
-│   │   ├── api/             # 静的API Routes
-│   │   │   └── blog-ids/    # 公開記事IDマッピングAPI
-│   │   ├── blog/            # ブログ記事関連ページ
-│   │   ├── topics/          # topics一覧とtopics別記事一覧
-│   │   ├── about/           # About ページ
-│   │   └── privacy-policy/  # プライバシーポリシー
-│   ├── components/          # Reactコンポーネント
-│   │   ├── Header.tsx       # ヘッダー
-│   │   ├── Footer.tsx       # フッター
-│   │   ├── BlogCard.tsx      # 記事カード
-│   │   └── mdx/              # MDX用コンポーネント
-│   ├── lib/                 # ユーティリティ関数
-│   │   ├── blog.ts          # 記事管理関数
-│   │   ├── id-mapping.ts    # D1 IDスナップショットの読み込み
-│   │   └── publication.ts   # 公開状態の判定
-├── scripts/                 # スクリプト
-│   ├── lib/                 # 共通ユーティリティ
-│   │   └── mdx-utils.ts     # MDX関連の共通関数
-│   ├── create-mdx.ts        # MDXファイル作成
-│   ├── edit-content.ts      # D1の記事メタデータ編集
-│   ├── migrate-topics.ts    # 旧分類frontmatterの移行
-│   ├── sync-content.ts      # MDXとD1の差分同期
-│   ├── prepare-content.ts   # migration・content同期・ID同期
-│   ├── sync-id-mappings.ts  # D1のIDを静的ビルド用に同期
-│   ├── update-mdx-metadata.ts # メタデータ更新
-│   └── validate-mdx.ts      # MDXバリデーション
-├── content/
-│   └── blog/                # MDX記事ファイル
-└── public/                  # 静的ファイル
+│   ├── api/                  # D1を利用するCloudflare Worker API
+│   │   ├── src/              # APIとDBクエリ
+│   │   ├── migrations/       # schema.tsから生成したD1 migration
+│   │   ├── drizzle.config.ts # Drizzle Kit configuration
+│   │   └── tests/            # API unit tests
+│   └── web/                  # Next.jsの静的サイト
+│       ├── src/              # Next.js App RouterとReactコンポーネント
+│       ├── scripts/          # MDXとD1を同期するスクリプト
+│       ├── content/          # MDX記事とページ
+│       └── public/           # 静的ファイル
+├── package.json              # workspace共通コマンド
+├── biome.jsonc              # workspace共通のformatter/linter設定
+└── wrangler.jsonc            # Worker、Assets、D1の設定
 ```
 
 ## サイト構造
@@ -107,11 +84,11 @@ pnpm test                # scripts と backend のテスト
 
 ### MDX と D1 の責務
 
-記事本文や画像などのコンテンツは、引き続き `content/blog/*.mdx` とGitで管理します。記事の公開状態、表示用メタデータ、topicsはD1の `posts` / `topics` / `post_topics` へ同期します。
+記事本文や画像などのコンテンツは、引き続き `apps/web/content/blog/*.mdx` とGitで管理します。記事の公開状態、表示用メタデータ、topicsはD1の `posts` / `topics` / `post_topics` へ同期します。
 
 既存の `0001_initial_schema.sql` は適用済みのD1 migrationとして保持し、今後のスキーマ変更は `pnpm --filter @kk2a/blog-api db:generate` でmigrationを生成します。
 
-記事とtopicsのIDにはD1の主キーを使います。ローカル開発とCIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `data/id-mappings.json` へ一時的に同期します。このファイルはGitで管理しません。
+記事とtopicsのIDにはD1の主キーを使います。ローカル開発とCIではローカルD1から、production deployではremote D1から、静的ページ生成に必要なIDだけを `apps/web/data/id-mappings.json` へ一時的に同期します。このファイルはGitで管理しません。
 
 通常の記事にはD1の自動採番を使い、`test-*` の記事には同期時にD1の状態から負数を自動採番します。通常のpostsとtopicsはD1のAUTOINCREMENTを使うため、削除済みのIDは再利用しません。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きはIDの値ではなく `posts.status` で判定し、productionの静的ページと公開用ID APIではdraft記事を除外します。
 
@@ -141,7 +118,7 @@ pnpm content:edit -- --remote --slug my-article --publish --yes
 pnpm content:edit -- --remote --slug my-article --topic TypeScript --topic Next.js --yes
 ```
 
-`content:edit` はデフォルトでlocal D1を対象にします。`--remote` を指定した更新には `--yes` が必要です。`--dry-run` を付けるとSQLだけを表示し、D1を変更しません。更新前のD1 exportは `.local/d1-backups/` に保存します。
+`content:edit` はデフォルトでlocal D1を対象にします。`--remote` を指定した更新には `--yes` が必要です。`--dry-run` を付けるとSQLだけを表示し、D1を変更しません。更新前のD1 exportは `apps/web/.local/d1-backups/` に保存します。
 
 APIでは、次のread endpointを提供します。
 
@@ -223,7 +200,7 @@ pnpm validate-mdx
 
 Cloudflare Workers Buildsは、mainへのpushを起点にデプロイします。Build commandには `D1_DATABASE_LOCATION=remote pnpm prepare-content && pnpm build` を、Deploy commandには `pnpm exec wrangler deploy` を指定します。Build commandの前半でschema migration、MDXからD1へのcontent同期、remote D1からのID同期を実行し、後半でD1を書き換えずに静的assetsを生成します。
 
-### 共通ユーティリティ (`scripts/lib/mdx-utils.ts`)
+### 共通ユーティリティ (`apps/web/scripts/lib/mdx-utils.ts`)
 
 MDX関連スクリプトでは、次の関数を共通して使います。
 

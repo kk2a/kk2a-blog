@@ -1,2 +1,2 @@
 npx lint-staged
-npx tsx scripts/validate-mdx.ts
+pnpm --filter @kk2a/blog-web exec tsx scripts/validate-mdx.ts

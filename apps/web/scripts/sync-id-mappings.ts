@@ -78,6 +78,7 @@ function loadPosts(): PostMapping[] {
 }
 
 const projectRoot = process.cwd();
+const wranglerConfigPath = path.join(projectRoot, "..", "..", "wrangler.jsonc");
 const outputPath = path.join(projectRoot, "data", "id-mappings.json");
 const databaseLocation =
   process.env.D1_DATABASE_LOCATION === "remote" ? "--remote" : "--local";
@@ -93,7 +94,7 @@ function execute<T>(command: string): T[] {
       "kk2a-blog",
       databaseLocation,
       "--config",
-      "wrangler.jsonc",
+      wranglerConfigPath,
       `--command=${command}`,
       "--json",
     ],

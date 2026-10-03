@@ -32,6 +32,12 @@ interface Options extends ContentEdit {
 }
 
 const projectRoot = process.cwd();
+const wranglerConfigPath = path.join(
+  projectRoot,
+  "..",
+  "..",
+  "wrangler.jsonc",
+);
 const databaseName = "kk2a-blog";
 
 function usage(): string {
@@ -173,7 +179,7 @@ function executeJson<T>(options: Options, command: string): T[] {
       databaseName,
       `--${options.location}`,
       "--config",
-      "wrangler.jsonc",
+      wranglerConfigPath,
       `--command=${command}`,
       "--json",
     ],
@@ -212,7 +218,7 @@ function exportBackup(options: Options): string {
     databaseName,
     `--${options.location}`,
     "--config",
-    "wrangler.jsonc",
+    wranglerConfigPath,
     `--output=${backupPath}`,
     "--skip-confirmation",
   ]);
@@ -233,7 +239,7 @@ function executeSql(options: Options, sql: string): void {
       databaseName,
       `--${options.location}`,
       "--config",
-      "wrangler.jsonc",
+    wranglerConfigPath,
       `--file=${sqlPath}`,
       "--yes",
     ]);

@@ -18,6 +18,7 @@ interface WranglerResult<T> {
 }
 
 const projectRoot = process.cwd();
+const wranglerConfigPath = path.join(projectRoot, "..", "..", "wrangler.jsonc");
 const contentDirectory = path.join(projectRoot, "content", "blog");
 const databaseLocation =
   process.env.D1_DATABASE_LOCATION === "remote" ? "--remote" : "--local";
@@ -36,7 +37,7 @@ function executeJson<T>(command: string): T[] {
       "kk2a-blog",
       databaseLocation,
       "--config",
-      "wrangler.jsonc",
+      wranglerConfigPath,
       `--command=${command}`,
       "--json",
     ],
@@ -77,7 +78,7 @@ function executeFile(filePath: string): void {
       "kk2a-blog",
       databaseLocation,
       "--config",
-      "wrangler.jsonc",
+      wranglerConfigPath,
       `--file=${filePath}`,
     ],
     { cwd: projectRoot, stdio: ["ignore", "ignore", "inherit"] },
