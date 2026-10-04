@@ -3,7 +3,7 @@
   "files": {
     "includes": [
       "apps/api/**/*.ts",
-      "!apps/api/src/worker-configuration.d.ts",
+      "!apps/api/worker/worker-configuration.d.ts",
       "apps/web/scripts/lib/content-sync.ts",
       "apps/web/scripts/lib/content-sync.test.ts",
       "apps/web/scripts/prepare-content.ts",

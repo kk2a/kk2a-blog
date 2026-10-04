@@ -40,6 +40,7 @@ Next.js 16、React 19、TypeScriptで構築しています。WebとCloudflare Wo
 ```
 ├── apps/
 │   ├── api/                  # D1を利用するCloudflare Worker API
+│   │   ├── worker/           # Workerのエントリーポイントと生成型
 │   │   ├── src/              # APIとDBクエリ
 │   │   ├── migrations/       # schema.tsから生成したD1 migration
 │   │   ├── drizzle.config.ts # Drizzle Kit configuration

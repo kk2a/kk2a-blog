@@ -49,4 +49,4 @@ next-env.d.ts
 # build-time D1 ID mapping snapshot
 **/data/
 
-/apps/api/src/worker-configuration.d.ts
+/apps/api/worker/worker-configuration.d.ts
