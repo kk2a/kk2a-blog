@@ -7,8 +7,8 @@ topics:
   - 数学
   - データ構造
   - Stern-Brocot tree
-lastUpdated: '2026-09-09T16:05:49+09:00'
-contentHash: 7278f8ffc2b4ae21776af100a07d0ea064376ea21dff28e98b48ca292c15ea2f
+lastUpdated: '2026-10-04T20:42:04+09:00'
+contentHash: 4c81d35863bb4b5e4ae02e7f307b6c34173217d78da5c37e8c54deb95f53a333
 ---
 
 ## はじめに
@@ -472,9 +472,30 @@ Encode Pathをして，$k$ 文字目までを取り出せば良いです．あ�
   <embed src="/stern-brocot-tree/rational_approximation_flowchart.pdf" type="application/pdf" height="550px" width="100%"/>
 </div> 
 
-2.と3.（4.と5.）のステップは指数探索をすることで効率化することができます<FootnoteRef id="fn:rational-approximation-exponential-search">[abc294の解説](https://atcoder.jp/contests/abc294/editorial/6017)に詳しく載っています．</FootnoteRef>．
+### 同じ方向への移動をまとめる
 
-あとでもう少し詳しく書きます．
+　上の手順を1段ずつ繰り返すと，答えに到達するまでの深さが大きい場合に時間がかかります．そこで，同じ方向へ何回続けて進めるかをまとめて求めます．
+
+　下界を $(a,b)$，上界を $(c,d)$ とします．右へ $t$ 回進んだときの中間値は，ベクトルの和を使って
+
+$$
+(a+tc, b+td)
+$$
+
+　と書けます．左へ $t$ 回進む場合は，対応する式が
+
+$$
+(ta+c, tb+d)
+$$
+
+　になります．$t$ を増やすと，この点が目標の有理数をまたぐまで判定結果は変わりません．したがって，次の2段階で最大の $t$ を探せます．
+
+1. $t=1,2,4,8,\ldots$ と倍にしながら判定し，判定結果が変わる範囲を見つける．
+2. 見つけた範囲の中で二分探索し，判定結果が変わる直前の $t$ を求める．
+
+　分子または分母が $N$ を超えた場合は，それ以上同じ方向へ進めません．このときは，制約を満たす最後の境界を使います．この処理を方向が変わるたびに繰り返せば，連長圧縮されたパスを直接たどれます．
+
+　連長圧縮した各区間の長さを $a_1, a_2, \ldots, a_k$ とすると，区間ごとの判定回数は $O(\log(a_i+1))$ です．これらの区間は連分数の係数に対応するため，分子と分母が高々 $N$ の範囲では，判定回数の合計は $O(\log N)$ に収まります<FootnoteRef id="fn:rational-approximation-exponential-search">[abc294の解説](https://atcoder.jp/contests/abc294/editorial/6017)に詳しく載っています．</FootnoteRef>．
 
 <Problem id="prob:min-of-mod-of-linear" title="Min of Mod of Linear">
 　$\min\{(Ax+B)\mod M : 0 \le x < N\}$ を求めよ．
