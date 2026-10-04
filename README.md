@@ -54,6 +54,8 @@ Next.js 16、React 19、TypeScriptで構築しています。WebとCloudflare Wo
 └── wrangler.jsonc            # Worker、Assets、D1の設定
 ```
 
+Webで配信する画像やPDFなどの公開資産は、`apps/web/public` に配置します。ルート直下にはWebアプリの資産を置きません。
+
 ## サイト構造
 
 - `/` - ホームページ（最新記事の表示）
