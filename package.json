@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@11.8.0",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=26.12.1"
   },
   "scripts": {
     "db:migrate:local": "pnpm --filter @kk2a/blog-api db:migrate:local",
