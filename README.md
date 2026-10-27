@@ -75,6 +75,8 @@ Webで配信する画像やPDFなどの公開資産は、`apps/web/public` に�
 依存関係の管理にはpnpmを使います。
 
 ```bash
+nvm install
+nvm use
 pnpm install
 pnpm dev                 # Next.js 開発サーバー
 pnpm check               # formatter / linter / typecheck / test / MDX validation
