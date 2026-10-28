@@ -86,7 +86,11 @@ export function samePost(
   mode: ContentSyncMode = "overwrite",
 ): boolean {
   if (mode === "preserve") {
-    return current.contentHash === existing.content_hash;
+    return (
+      current.contentHash === existing.content_hash &&
+      (current.lastUpdated === null ||
+        current.lastUpdated === existing.last_updated)
+    );
   }
 
   return (
@@ -218,11 +222,11 @@ export function renderSyncSql(
       const updateClause =
         mode === "overwrite"
           ? "title = excluded.title, date = excluded.date, description = excluded.description, excerpt = excluded.excerpt, last_updated = excluded.last_updated, content_hash = excluded.content_hash, content_path = excluded.content_path, status = excluded.status"
-          : "content_hash = excluded.content_hash, content_path = excluded.content_path";
+          : "last_updated = COALESCE(excluded.last_updated, posts.last_updated), content_hash = excluded.content_hash, content_path = excluded.content_path";
       const updateCondition =
         mode === "overwrite"
           ? "posts.title IS NOT excluded.title OR posts.date IS NOT excluded.date OR posts.description IS NOT excluded.description OR posts.excerpt IS NOT excluded.excerpt OR posts.last_updated IS NOT excluded.last_updated OR posts.content_hash IS NOT excluded.content_hash OR posts.content_path IS NOT excluded.content_path OR posts.status IS NOT excluded.status"
-          : "posts.content_hash IS NOT excluded.content_hash OR posts.content_path IS NOT excluded.content_path";
+          : "(excluded.last_updated IS NOT NULL AND posts.last_updated IS NOT excluded.last_updated) OR posts.content_hash IS NOT excluded.content_hash OR posts.content_path IS NOT excluded.content_path";
       statements.push(
         `INSERT INTO posts (${columns}) VALUES (${values}) ON CONFLICT (slug) DO UPDATE SET ${updateClause}, updated_at = CURRENT_TIMESTAMP WHERE ${updateCondition};`,
       );
