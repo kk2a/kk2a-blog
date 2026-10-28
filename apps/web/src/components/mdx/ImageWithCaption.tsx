@@ -7,6 +7,7 @@ interface ImageWithCaptionProps {
   width?: number;
   height?: number;
   className?: string;
+  background?: "transparent" | "white";
 }
 
 export function ImageWithCaption({
@@ -16,10 +17,15 @@ export function ImageWithCaption({
   width = 600,
   height = 400,
   className = "",
+  background = "transparent",
 }: ImageWithCaptionProps) {
   return (
     <figure className={`my-8 ${className}`}>
-      <div className="relative rounded-lg overflow-hidden border border-theme-border">
+      <div
+        className={`relative rounded-lg overflow-hidden border border-theme-border ${
+          background === "white" ? "bg-white" : ""
+        }`}
+      >
         <Image
           src={src}
           alt={alt}
