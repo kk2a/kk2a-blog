@@ -29,13 +29,9 @@
   --table-of-contents-text-2: #1447e6;
   --table-of-contents-bg-1: #1c39fe11;
 
-  --category-bg-1: oklch(88.8% 0.1 255);
-  --category-bg-2: oklch(92.1% 0.078 239);
-  --category-text-1: #111;
-
-  --tag-bg-1: oklch(86.3% 0.02 260.2);
-  --tag-bg-2: oklch(90.6% 0.02 257.3);
-  --tag-text-1: #111;
+  --topic-bg-1: oklch(88.8% 0.1 255);
+  --topic-bg-2: oklch(92.1% 0.078 239);
+  --topic-text-1: #111;
 
   --card-text-hover: oklch(65% 0.245 264.4);
 
@@ -93,13 +89,9 @@
   --table-of-contents-text-2: #8ec5ff;
   --table-of-contents-bg-1: #1c398e33;
 
-  --category-bg-1: #1c398e;
-  --category-bg-2: #193cb8;
-  --category-text-1: #bedbff;
-
-  --tag-bg-1: #364153;
-  --tag-bg-2: #475569;
-  --tag-text-1: #d1d5dc;
+  --topic-bg-1: #1c398e;
+  --topic-bg-2: #193cb8;
+  --topic-text-1: #bedbff;
 
   --card-text-hover: oklch(70.7% 0.165 254.624);
 

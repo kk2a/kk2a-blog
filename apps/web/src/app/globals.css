@@ -8,6 +8,8 @@
 @import "./styles/mdx.css";
 @import "./styles/math.css";
 
+@config "../../tailwind.config.ts";
+
 html {
   scroll-padding-top: 10rem;
 }
