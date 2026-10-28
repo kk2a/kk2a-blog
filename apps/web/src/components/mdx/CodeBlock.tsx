@@ -1,9 +1,7 @@
-"use client";
-
-import { Copy, Check } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { CopyButton } from "./CopyButton";
 import { getCodeText } from "./code-content";
 
 interface CodeBlockProps {
@@ -12,30 +10,12 @@ interface CodeBlockProps {
   title?: string;
 }
 
+function processCode(code: string): string {
+  return code.replace(/^\n+/, "").replace(/\n+$/, "");
+}
+
 export function CodeBlock({ children, language, title }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false);
-
-  // コードの正規化処理（インデントは保持）
-  const processCode = (code: string) => {
-    return code.replace(/^\n+/, "").replace(/\n+$/, "");
-  };
-
-  // 表示・コピー用のコード取得
-  const getCode = () => processCode(getCodeText(children));
-
-  const handleCopy = async () => {
-    const processedCode = getCode();
-
-    try {
-      await navigator.clipboard.writeText(processedCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy code:", err);
-    }
-  };
-
-  const codeString = getCode();
+  const codeString = processCode(getCodeText(children));
 
   return (
     <div className="my-6 rounded-lg border border-gray-700 overflow-hidden">
@@ -51,17 +31,10 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
               </span>
             )}
           </div>
-          <button
-            onClick={handleCopy}
+          <CopyButton
+            code={codeString}
             className="p-1 rounded hover:bg-gray-700 text-gray-400 hover:text-gray-200"
-            title={copied ? "Copied!" : "Copy code"}
-          >
-            {copied ? (
-              <Check className="h-4 w-4 text-green-400" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-          </button>
+          />
         </div>
       )}
 
@@ -91,17 +64,10 @@ export function CodeBlock({ children, language, title }: CodeBlockProps) {
         )}
 
         {!title && !language && (
-          <button
-            onClick={handleCopy}
+          <CopyButton
+            code={codeString}
             className="absolute top-2 right-2 p-2 rounded hover:bg-gray-700 text-gray-400 hover:text-gray-200"
-            title={copied ? "Copied!" : "Copy code"}
-          >
-            {copied ? (
-              <Check className="h-4 w-4 text-green-400" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-          </button>
+          />
         )}
       </div>
     </div>

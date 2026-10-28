@@ -1,4 +1,4 @@
-import { findPost, listPosts, listTopics } from "./db";
+import { findPost, listPosts, listTopics } from "../src/db";
 
 const jsonHeaders = {
   "Cache-Control": "public, max-age=60, s-maxage=300",

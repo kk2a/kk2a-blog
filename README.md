@@ -40,6 +40,7 @@ Next.js 16、React 19、TypeScriptで構築しています。WebとCloudflare Wo
 ```
 ├── apps/
 │   ├── api/                  # D1を利用するCloudflare Worker API
+│   │   ├── worker/           # Workerのエントリーポイントと生成型
 │   │   ├── src/              # APIとDBクエリ
 │   │   ├── migrations/       # schema.tsから生成したD1 migration
 │   │   ├── drizzle.config.ts # Drizzle Kit configuration
@@ -74,6 +75,8 @@ Webで配信する画像やPDFなどの公開資産は、`apps/web/public` に�
 依存関係の管理にはpnpmを使います。
 
 ```bash
+nvm install
+nvm use
 pnpm install
 pnpm dev                 # Next.js 開発サーバー
 pnpm check               # formatter / linter / typecheck / test / MDX validation

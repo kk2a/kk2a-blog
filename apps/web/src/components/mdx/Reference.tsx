@@ -6,6 +6,7 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 // 参考文献の情報を管理するコンテキスト
 const ReferenceContext = React.createContext<{
   references: Array<{ id: string; content: React.ReactNode; order: number }>;
+  referencesReady: boolean;
   addReference: (id: string, content: React.ReactNode) => number;
   getReferences: () => Array<{
     id: string;
@@ -15,6 +16,7 @@ const ReferenceContext = React.createContext<{
   clearReferences: () => void;
 }>({
   references: [],
+  referencesReady: false,
   addReference: () => 0,
   getReferences: () => [],
   clearReferences: () => {},
@@ -28,6 +30,11 @@ export const ReferenceProvider: React.FC<{ children: React.ReactNode }> = ({
     Array<{ id: string; content: React.ReactNode; order: number }>
   >([]);
   const [citationOrder, setCitationOrder] = useState<string[]>([]);
+  const [referencesReady, setReferencesReady] = useState(false);
+
+  useEffect(() => {
+    setReferencesReady(true);
+  }, []);
 
   const addReference = (id: string, content: React.ReactNode): number => {
     // 既に引用されている場合は既存の番号を返す
@@ -67,7 +74,13 @@ export const ReferenceProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <ReferenceContext.Provider
-      value={{ references, addReference, getReferences, clearReferences }}
+      value={{
+        references,
+        referencesReady,
+        addReference,
+        getReferences,
+        clearReferences,
+      }}
     >
       {children}
     </ReferenceContext.Provider>
@@ -78,39 +91,30 @@ export const ReferenceProvider: React.FC<{ children: React.ReactNode }> = ({
 export const ReferenceRef: React.FC<{
   id: string;
 }> = ({ id }) => {
-  const { addReference, references } = React.useContext(ReferenceContext);
+  const { addReference, references, referencesReady } =
+    React.useContext(ReferenceContext);
   const [refNumber, setRefNumber] = useState<number>(0);
   const [referenceContent, setReferenceContent] =
     useState<React.ReactNode>(null);
 
   useEffect(() => {
-    // Reference 定義も useEffect で登録されるため、同じ描画サイクル内で
-    // 定義が登録されるのを待ってから未定義かどうかを判定する。
-    let cancelled = false;
-    const timeoutId = window.setTimeout(() => {
-      if (cancelled) {
-        return;
-      }
+    // Reference定義もeffectで登録されるため、定義の登録が終わるまで判定しない。
+    if (!referencesReady) return;
 
-      const referenceData = references.find((ref) => ref.id === id);
-      if (referenceData) {
-        const number = addReference(id, referenceData.content);
-        setRefNumber(number);
-        setReferenceContent(referenceData.content);
-      } else {
-        console.warn(
-          `Reference with id "${id}" not found. Make sure to define it with <Reference id="${id}" ... />`
-        );
-        setRefNumber(0);
-        setReferenceContent(null);
-      }
-    }, 0);
+    const referenceData = references.find((ref) => ref.id === id);
+    if (referenceData) {
+      const number = addReference(id, referenceData.content);
+      setRefNumber(number);
+      setReferenceContent(referenceData.content);
+      return;
+    }
 
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeoutId);
-    };
-  }, [id, addReference, references]);
+    console.warn(
+      `Reference with id "${id}" not found. Make sure to define it with <Reference id="${id}" ... />`,
+    );
+    setRefNumber(0);
+    setReferenceContent(null);
+  }, [id, addReference, references, referencesReady]);
 
   if (refNumber === 0) {
     return (
