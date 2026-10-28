@@ -7,8 +7,8 @@ topics:
   - 数学
   - データ構造
   - Stern-Brocot tree
-lastUpdated: '2026-10-04T20:42:04+09:00'
-contentHash: 4c81d35863bb4b5e4ae02e7f307b6c34173217d78da5c37e8c54deb95f53a333
+lastUpdated: '2026-10-28T17:12:42+09:00'
+contentHash: d2ecc25eb652082ce8ee131baa9c1b5fb4614150671e1301c83e5ece2586974c
 ---
 
 ## はじめに
@@ -466,11 +466,16 @@ Encode Pathをして，$k$ 文字目までを取り出せば良いです．あ�
 5. $a/b \le x/y$ なら，2.にいく．そうでないなら，4.にいく．
 6. $l = x/y$ なら，$r = l$ として，答えは，$l, r$ です．
 
-以下のフローチャートは、このアルゴリズムを視覚化したものです：
+以下のフローチャートは，このアルゴリズムを視覚化したものです：
 
-<div style={{ display: 'flex', justifyContent: 'center', margin: '2rem 0' }}>
-  <embed src="/stern-brocot-tree/rational_approximation_flowchart.pdf" type="application/pdf" height="550px" width="100%"/>
-</div> 
+<ImageWithCaption
+  src="/stern-brocot-tree/rational_approximation_flowchart.svg"
+  alt="Rational Approximationの探索手順を示すフローチャート"
+  width={953}
+  height={688}
+  background="white"
+  caption="Rational Approximationの探索手順"
+/>
 
 ### 同じ方向への移動をまとめる
 
