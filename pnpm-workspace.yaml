@@ -15,6 +15,8 @@ minimumReleaseAgeExclude:
   - wrangler@4.146.0
 
 overrides:
+  katex: 0.18.10
+  'postcss-selector-parser@<6.1.5': 6.1.5
   'gray-matter>js-yaml': 3.15.2
   '@esbuild-kit/core-utils>esbuild': 0.25.12
   '@esbuild-kit/esm-loader>esbuild': 0.25.12

@@ -4,9 +4,9 @@ import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   return (
-    <header className="bg-theme-background shadow-sm border-b border-theme-border">
+    <header className="sticky top-0 z-40 shrink-0 bg-theme-background shadow-sm border-b border-theme-border">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
+        <div className="flex flex-wrap justify-between items-center gap-2 py-6">
           <div className="flex items-center">
             <Link href="/" className="text-2xl font-bold text-theme-1">
               {siteConfig.name}

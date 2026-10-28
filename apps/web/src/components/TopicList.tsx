@@ -15,7 +15,7 @@ export default function TopicList({ topics, displayLimit }: TopicListProps) {
         <Link
           href={`/topics/${encodeURIComponent(topic)}`}
           key={topic}
-          className="rounded-full px-3 py-1 text-sm bg-category-1 hover:bg-category-2 text-category-1 transition-colors duration-200"
+          className="rounded-full px-3 py-1 text-sm bg-topic-1 hover:bg-topic-2 text-topic-1 transition-colors duration-200"
         >
           {topic}
         </Link>

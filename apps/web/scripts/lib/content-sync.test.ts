@@ -8,6 +8,7 @@ import {
   type ExistingPost,
   readPosts,
   renderSyncSql,
+  samePost,
 } from "./content-sync";
 
 const temporaryDirectories: string[] = [];
@@ -48,6 +49,44 @@ afterEach(() => {
 });
 
 describe("content synchronization", () => {
+  it("repairs stale update dates even when the content hash already matches", () => {
+    const current = {
+      ...currentPost("hello"),
+      lastUpdated: "2026-10-28T12:00:00+09:00",
+    };
+    const existing = existingPost("hello", 42);
+    expect(samePost(current, existing, "preserve")).toBe(false);
+    expect(
+      samePost(
+        current,
+        { ...existing, last_updated: current.lastUpdated },
+        "preserve",
+      ),
+    ).toBe(true);
+    const sql = renderSyncSql([current], [existing], "commit");
+    expect(sql).toContain(
+      "last_updated = COALESCE(excluded.last_updated, posts.last_updated)",
+    );
+    expect(sql).toContain(
+      "excluded.last_updated IS NOT NULL AND posts.last_updated IS NOT excluded.last_updated",
+    );
+    expect(sql).not.toContain("title = excluded.title");
+    expect(sql).not.toContain("status = excluded.status");
+  });
+
+  it("preserves a D1 update date when the MDX has none", () => {
+    expect(
+      samePost(
+        currentPost("hello"),
+        {
+          ...existingPost("hello", 42),
+          last_updated: "2026-10-28T12:00:00+09:00",
+        },
+        "preserve",
+      ),
+    ).toBe(true);
+  });
+
   it("extracts topics from blog frontmatter", () => {
     const directory = fs.mkdtempSync(
       path.join(os.tmpdir(), "kk2a-blog-content-sync-test-"),

@@ -103,36 +103,20 @@
     background-color: var(--table-of-contents-bg-1);
   }
 
-  .text-category-1 {
-    color: var(--category-text-1);
+  .text-topic-1 {
+    color: var(--topic-text-1);
   }
-  .bg-category-1 {
-    background-color: var(--category-bg-1);
+  .bg-topic-1 {
+    background-color: var(--topic-bg-1);
   }
-  .bg-category-2 {
-    background-color: var(--category-bg-2);
+  .bg-topic-2 {
+    background-color: var(--topic-bg-2);
   }
-  .hover\:bg-category-1:hover {
-    background-color: var(--category-bg-1);
+  .hover\:bg-topic-1:hover {
+    background-color: var(--topic-bg-1);
   }
-  .hover\:bg-category-2:hover {
-    background-color: var(--category-bg-2);
-  }
-
-  .text-tag-1 {
-    color: var(--tag-text-1);
-  }
-  .bg-tag-1 {
-    background-color: var(--tag-bg-1);
-  }
-  .bg-tag-2 {
-    background-color: var(--tag-bg-2);
-  }
-  .hover\:bg-tag-1:hover {
-    background-color: var(--tag-bg-1);
-  }
-  .hover\:bg-tag-2:hover {
-    background-color: var(--tag-bg-2);
+  .hover\:bg-topic-2:hover {
+    background-color: var(--topic-bg-2);
   }
 
   .hover\:text-card:hover {

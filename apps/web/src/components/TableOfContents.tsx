@@ -138,8 +138,9 @@ export function TableOfContents({
     const element = document.getElementById(id);
     if (element) {
       // ヘッダーなどの固定要素のオフセットを考慮
-      const headerOffset = 80;
-      const elementPosition = element.offsetTop;
+      const headerOffset =
+        (document.querySelector("header")?.getBoundingClientRect().height ?? 0) + 16;
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
       const offsetPosition = elementPosition - headerOffset;
 
       window.scrollTo({

@@ -59,7 +59,7 @@ export default async function AboutPage() {
           </div>
 
           {/* サイドバー（目次） */}
-          <aside className="xl:w-64 xl:flex-shrink-0 xl:sticky xl:top-4 xl:self-start">
+          <aside className="xl:w-64 xl:flex-shrink-0 xl:sticky xl:top-28 xl:self-start">
             <TableOfContents
               className="xl:block hidden"
               headingSelector={headingSelectors}

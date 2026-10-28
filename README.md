@@ -97,9 +97,11 @@ pnpm test                # scripts と backend のテスト
 
 通常の記事にはD1の自動採番を使い、`test-*` の記事には同期時にD1の状態から負数を自動採番します。通常のpostsとtopicsはD1のAUTOINCREMENTを使うため、削除済みのIDは再利用しません。IDを含むコンテンツを復元する場合は、D1のバックアップを正とします。公開・下書きはIDの値ではなく `posts.status` で判定し、productionの静的ページと公開用ID APIではdraft記事を除外します。
 
-MDXの差分をD1の記事メタデータへ反映するには、`pnpm prepare-content` を使います。新しい記事ではメタデータとtopicsを登録し、既存記事ではMDX本文のハッシュとパスだけを更新します。既存記事のtitle、date、excerpt、公開状態、topicsはD1側の値を保持します。seed SQLをGitに生成・保存する運用はありません。
+MDXの差分をD1の記事メタデータへ反映するには、`pnpm prepare-content` を使います。新しい記事ではメタデータとtopicsを登録し、既存記事ではMDX本文のハッシュ、パス、`lastUpdated`を更新します。MDXに`lastUpdated`がない場合はD1の更新日時を保持します。既存記事のtitle、date、excerpt、公開状態、topicsはD1側の値を保持します。seed SQLをGitに生成・保存する運用はありません。
 
 記事の分類は `topics` に統一しています。旧 `categories` と `tags` を含むMDXを移行する場合は、最初に `pnpm topics:migrate` を実行してください。移行後は `pnpm topics:migrate --check` で旧フィールドが残っていないことを確認できます。
+
+旧 `/categories/[category]`、`/tags/[tag]`、`/api/categories`、`/api/tags`、`/api/id-mappings` は削除済みです。記事の分類には `/topics` と `/api/v1/topics` を使います。
 
 `pnpm build` はD1を書き換えません。事前に `pnpm prepare-content` を実行して、ビルドが読むローカルD1とIDスナップショットを用意してください。
 
