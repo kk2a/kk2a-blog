@@ -8,6 +8,16 @@
 @import "./styles/mdx.css";
 @import "./styles/math.css";
 
+html {
+  scroll-padding-top: 10rem;
+}
+
+@media (min-width: 640px) {
+  html {
+    scroll-padding-top: 7rem;
+  }
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
